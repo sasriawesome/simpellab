@@ -1,0 +1,35 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+django = "==3.0.8"
+djangorestframework = "==3.11.0"
+djangorestframework-simplejwt = "==4.4.0"
+drf-yasg = {extras = ["validation"], version = "==1.17.1"}
+djoser = "==2.0.3"
+django-filter = "==2.3.0"
+django-redis = "*"
+django-rq = "*"
+django-heroku = "*"
+psycopg2 = "*"
+django-admin-numeric-filter = "*"
+django-admin-rangefilter = "*"
+django-constance = {extras = ["redis"], version = "*"}
+pillow = "*"
+django-wkhtmltopdf = "*"
+python-pdf = "==0.37"
+django-polymorphic = "*"
+django-import-export = "*"
+django-mptt = "*"
+django-taggit = "*"
+django-numerators = "*"
+django-qrcodes = "*"
+django-personals = "*"
+django-nested-admin = "*"
+
+[requires]
+python_version = "3.8"

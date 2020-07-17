@@ -1,0 +1,335 @@
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+<title>{% block title %}{% endblock %}</title>
+<link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/metisMenu.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/mm-vertical.css' %}">
+<link rel="stylesheet" type="text/css" href="//cdn.materialdesignicons.com/5.3.45/css/materialdesignicons.min.css">
+{% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
+{% block extrahead %}{% endblock %}
+{% block responsive %}
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+    {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive_rtl.css" %}">{% endif %}
+{% endblock %}
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+<style>
+    #header h1 {
+        font-weight: bold;
+    }
+    #branding {
+        padding-top: 15px !important;
+    }
+    .login #branding {
+        float: left;
+        text-align: center;
+        padding: 15px 0 0 0;
+    }
+    .login #header h1 {
+        margin: 0;
+        font-size: 18px;
+        text-align: center;
+    }
+    #sidenavButton {
+        padding: 10px 10px 5px;
+        background: none;
+        border: 1px solid white;
+        border-radius: 3px;
+    }
+    #sidenavButton span {
+        width: 25px;
+        height: 3px;
+        display: block;
+        background-color: white;
+        margin-bottom: 5px;
+    }
+    .sidenav-header {
+        text-align: center;
+        background: #212529;
+        padding: 30px 30px 15px;
+        border-bottom: 1px solid #112529;
+    }
+    .sidenav-header h1 {
+        margin-bottom: 0;
+        font-weight: bold;
+        color: #f5dd5d;
+    }
+    .sidenav-header span {
+        color: #f5dd5d;
+    }
+    img.sidenav-header-logo {
+        max-height: 80px;
+        max-width: 120px;
+        margin-bottom: 15px;    
+    }
+
+    div.breadcrumbs {
+        font-size: 12px !important;
+    }
+    .object-tools a {
+        border-radius: 3px;
+        padding-top: 5px !important;
+        padding-bottom: 3px !important;
+    }
+    .admindatefilter input[type="text"] {
+        width: 75%;
+        margin-right: 5px;
+    }
+    .admindatefilter .button , .admindatefilter input[type="submit"] {
+        border: 0 !important;
+        color: #447e9b !important;
+        cursor: pointer !important;
+        margin-right: 15px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    #changelist-filter .admin-numeric-filter-wrapper button {
+        float: left !important;
+    }
+    .column-edit_link,
+    .column-delete_link, 
+    .column-view_link{
+        width: 30px;
+    }
+    .deletelink {
+        padding-left: 16px;
+        background-position-x: 1px;
+        background-position-y: 0;
+        margin-right: 5px;
+    }
+    .changelink {
+        margin-right: 5px;
+    }
+    .viewlink {
+        padding-left: 16px;
+        background-position-x: 1px;
+        background-position-y: 1px;
+        margin-right: 5px;
+    }
+    
+    .footer_menu {
+        background-color: #f8f8f8;
+        padding: 15px 30px;;
+    }
+    .footer_copyright {
+        background-color: #dedede;
+        padding: 15px 30px;
+        text-align: center;
+    }
+    .footer_copyright p {
+        margin: 0;
+    }
+    h3.djn-drag-handler {
+        background: #417690 !important;
+        color: white !important;
+        padding-left: 10px !important;
+    }
+    .djn-group .djn-group-nested {
+        margin: 0;
+    }
+    .djn-group .djn-group h2 {
+        padding-left: 13px !important;
+        font-size: 10px !important;
+        background: #f6f6f6 !important;
+        font-weight: 700 !important;
+        color: #000017;
+    }
+    .inline-group .tabular tr.add-row td {
+        padding: 8px 10px !important;
+        border-bottom: 15px solid #fff !important;
+    }
+</style>
+{% if perms.is_authenticated %}
+<style>
+    #content {
+        min-height: 60vh;
+    }
+    .footer {
+        color: white;
+        margin-top: 60px;
+    }
+    .breadcrumbs,
+    #header, #sidenav {
+        box-shadow: 0 1px 3px #888;
+    }
+    #branding h1 {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    #branding p {
+        font-size: 12px;
+    }
+    #sidenav {
+        transition: all .2s ease-in;
+        height: 100vh;
+        width: 265px;
+        overflow-y: auto;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+    }
+    #overlay {
+        display: none;
+        height: 0;
+        width: 0;
+        top: 0;
+        left: 0;
+        position: fixed;
+        z-index: 999;
+        background-color: #112529;
+        opacity: 0.5;
+    }
+    #sidenav.active {
+            left: 0;
+        }
+    .sidenav_white{
+        background-color: white;
+    }
+    #container {
+        transition: all .2s ease-in;
+        margin-left: 265px;
+        width: auto;
+    }
+    #sidenavButton {
+        display: none;
+    }
+    .vTextField, .vUUIDField {
+        width: 15.5em !important;
+    }
+    @media (max-width: 1024px) {
+        #branding {
+            text-align: center;
+        }
+    }
+    @media (max-width: 767px) {
+        #overlay.active {
+            display: block;
+            height: 100vh;
+            width: 100vw;
+        }
+        #sidenavButton {
+            display: inline-block;
+        }
+        #sidenav {
+            left: -265px;
+        }
+        #container {
+            margin-left: 0;
+        }
+        #sidenav.active {
+            left: 0;
+        }
+    }
+</style>
+{% endif %}
+{% if is_popup %}
+<style>
+    #sidenav {
+        display: none;
+    }
+    #container {
+        margin-left: 0;
+    }
+</style>
+{% endif %}
+{% block extrastyle %}{% endblock %}
+</head>
+{% load i18n %}
+
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+  data-admin-utc-offset="{% now "Z" %}">
+
+{% block sidenav %}
+  {% if perms.is_authenticated and not is_popup %}
+      {% include 'admin/sidenav.html' %}
+  {% endif %}
+{% endblock %}
+
+<!-- Container -->
+<div id="container">
+
+    {% if not is_popup %}
+    <!-- Header -->
+    <div id="header">
+        {% if has_permission %}
+            <button id="sidenavButton">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        {% endif %}
+        <div id="branding">
+        {% block branding %}{% endblock %}
+        </div>
+        {% block usertools %}
+        {% if has_permission %}
+        <div id="user-tools">
+            {% block welcome-msg %}
+                {% trans 'Welcome,' %}
+                <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+            {% endblock %}
+            {% block userlinks %}
+                {% if site_url %}
+                    <a href="{{ site_url }}">{% trans 'View site' %}</a> /
+                {% endif %}
+                {% if user.is_active and user.is_staff %}
+                    {% url 'django-admindocs-docroot' as docsroot %}
+                    {% if docsroot %}
+                        <a href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
+                    {% endif %}
+                {% endif %}
+                {% if user.has_usable_password %}
+                <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
+                {% endif %}
+                <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+            {% endblock %}
+        </div>
+        {% endif %}
+        {% endblock %}
+        {% block nav-global %}{% endblock %}
+    </div>
+    <!-- END Header -->
+    {% block breadcrumbs %}
+    <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    {% if title %} &rsaquo; {{ title }}{% endif %}
+    </div>
+    {% endblock %}
+    {% endif %}
+
+    {% block messages %}
+        {% if messages %}
+        <ul class="messagelist">{% for message in messages %}
+          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+        {% endfor %}</ul>
+        {% endif %}
+    {% endblock messages %}
+
+    <!-- Content -->
+    <div id="content" class="{% block coltype %}colM{% endblock %}">
+        {% block pretitle %}{% endblock %}
+        {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+        {% block content %}
+        {% block object-tools %}{% endblock %}
+        {{ content }}
+        {% endblock %}
+        {% block sidebar %}{% endblock %}
+        <br class="clear">
+    </div>
+    <!-- END Content -->
+
+    {% block footer %}<div id="footer"></div>{% endblock %}
+    <script src="{% static 'admin/js/jquery.min.js' %}"></script>
+    <script src="{% static 'admin/js/metismenu.js' %}"></script>
+    <script src="{% static 'admin/js/mm-vertical.js' %}"></script>
+    {% block extra_script %}{% endblock %}
+</div>
+<!-- END Container -->
+
+</body>
+</html>
