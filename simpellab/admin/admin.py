@@ -151,7 +151,8 @@ class ModelAdmin(NumericFilterModelAdmin, ModelAdminMenuMixin, admin.ModelAdmin)
         )
 
     def get_list_display(self, request):
-        list_display = self.list_display.copy()
+        raw_list_display = list(self.list_display)
+        list_display = raw_list_display.copy()
         if self.has_change_permission(request):
             list_display.append('edit_link')
         if self.has_delete_permission(request):

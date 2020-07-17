@@ -1,26 +1,50 @@
 from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django.utils import translation, timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from django_numerators.models import NumeratorMixin
 from django_qrcodes.models import QRCodeMixin
+from polymorphic.models import PolymorphicModel
 
 from simpellab.utils.text import number_to_text_id
-from simpellab.core.enums import MaxLength
+from simpellab.core.enums import MaxLength, Status
 from simpellab.core.models import BaseModel, SimpleBaseModel
-from simpellab.core.mixins import ThreeStepStatusMixin
+from simpellab.core.mixins import ThreeStepStatusMixin, StatusMixin, PaidMixin, TrashMixin, CloseMixin
 from simpellab.modules.partners.models import Partner
 from simpellab.modules.products.enums import ProductType
-from simpellab.modules.products.models import Product, Fee, Parameter
-from simpellab.modules.sales.models.managers import SalesOrderManager
-from simpellab.modules.sales.models.mixins import InvoiceStatusMixin
+from simpellab.modules.products.models import Fee
+from simpellab.modules.sales.managers import SalesOrderManager
 
 
 _ = translation.gettext_lazy
 
+__all__ = [
+    'SalesOrder',
+    'OrderFee',
+    'OrderItemBase',
+    'ExtraParameterBase',
+    'Invoice'
+]
 
-class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, SimpleBaseModel):
+
+class InvoiceStatusMixin(
+        TrashMixin,
+        PaidMixin,
+        CloseMixin,
+        StatusMixin):
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.status = Status.PENDING.value
+        super().save(*args, **kwargs)
+
+
+class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleBaseModel):
     class Meta:
         verbose_name = _('Sales Order')
         verbose_name_plural = _('Sales Orders')
@@ -31,22 +55,11 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, SimpleBaseModel):
             ('complete_salesorder', 'Can complete Sales Order'),
         )
 
-    objects = SalesOrderManager()
-
     doc_prefix = 'SPJ'
 
-    is_specific = models.BooleanField(
-        default=False, editable=False,
-        verbose_name=_('Is specific'),
-        help_text=_('Group product order by order type'))
-    product_type = models.CharField(
-        max_length=MaxLength.SHORT.value,
-        choices=ProductType.CHOICES.value,
-        default=ProductType.ANY.name,
-        verbose_name=_('Service Type')
-    )
     customer = models.ForeignKey(
         Partner, on_delete=models.PROTECT,
+        limit_choices_to={'is_customer':True},
         verbose_name=_('Customer'))
     customer_po = models.CharField(
         max_length=MaxLength.LONG.value,
@@ -87,7 +100,7 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, SimpleBaseModel):
 
     def calc_total_order(self):
         # FakeQuerySet doesn't have aggregate
-        total_products = self.order_products.aggregate(
+        total_products = self.order_items.aggregate(
                 val=models.Sum('total_price')
             )['val'] or 0
         total_fees = self.order_fees.aggregate(
@@ -108,7 +121,6 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, SimpleBaseModel):
         self.calc_grand_total()
 
     def save(self, *args, **kwargs):
-        self.is_specific = True  # Grouping Product
         self.calc_all_total()
         self.clean()
         super().save(*args, **kwargs)
@@ -174,24 +186,12 @@ class OrderFee(BaseModel):
         super().save(*args, **kwargs)
 
 
-class OrderProduct(BaseModel):
+class OrderItemBase(SimpleBaseModel):
     class Meta:
-        verbose_name = _('Sales Order Item')
-        verbose_name_plural = _('Sales Order Items')
-        ordering = ('product',)
-        unique_together = ('order', 'product')
+        abstract = True
 
     _ori_product = None
 
-    order = models.ForeignKey(
-        SalesOrder,
-        related_name='order_products',
-        on_delete=models.CASCADE,
-        verbose_name=_('Order'))
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.PROTECT,
-        related_name='order_products')
     name = models.CharField(
         null=True, blank=True,
         max_length=MaxLength.LONG.value,
@@ -223,14 +223,9 @@ class OrderProduct(BaseModel):
             self._ori_product = self.product
 
     def __str__(self):
-        return self.product.name
+        return self.name
 
     def clean(self):
-        # Make sure product type equal to sales order type
-        # if self.order != self.product.product_type:
-        #     msg = _("Sales order doesn't match.")
-        #     raise ValidationError({"order": msg})
-        # Make sure price don't change directly when tarif price changed
         not_adding = self._state.adding is False
         if self._ori_product:
             is_changed = self._ori_product.id != self.product.id
@@ -255,23 +250,12 @@ class OrderProduct(BaseModel):
         super().save(*args, **kwargs)
 
 
-class ExtraParameter(BaseModel):
+class ExtraParameterBase(BaseModel):
     class Meta:
-        verbose_name = _('Extra Parameter')
-        verbose_name_plural = _('Extra Parameters')
-        unique_together = ('order_product', 'parameter')
+        abstract = True
 
     _ori_parameter = None
 
-    order_product = models.ForeignKey(
-        OrderProduct,
-        related_name='extra_parameters',
-        on_delete=models.CASCADE,
-        verbose_name=_('Product'))
-    parameter = models.ForeignKey(
-        Parameter, on_delete=models.CASCADE,
-        related_name='extra_parameters',
-        verbose_name=_('Parameter'))
     price = models.DecimalField(
         default=0,
         max_digits=15,
@@ -280,6 +264,9 @@ class ExtraParameter(BaseModel):
     date_effective = models.DateField(
         default=timezone.now,
         verbose_name=_('Date effective'))
+
+    def get_default_parameters(self):
+        raise NotImplementedError
 
     def __str__(self):
         return str(self.parameter)
@@ -291,7 +278,7 @@ class ExtraParameter(BaseModel):
 
     def clean(self):
         # Prevent duplicate parameter between default and extra
-        default_params = self.order_product.product.parameters
+        default_params = self.get_default_parameters()
         if len(default_params.filter(parameter=self.parameter)):
             msg = _("This parameter is default parameter. "
                     "please select another one.")
@@ -385,3 +372,39 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
     @property
     def close_valid_condition(self):
         return self.is_paid and self.grand_total == self.paid
+
+
+# @receiver(post_save, sender=OrderFee)
+# def after_save_order_fee(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.order.save()
+
+
+# @receiver(post_delete, sender=OrderFee)
+# def after_delete_order_fee(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.order.save()
+
+
+# @receiver(post_save, sender=OrderProduct)
+# def after_save_order_product(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.order.save()
+
+
+# @receiver(post_delete, sender=OrderProduct)
+# def after_delete_order_product(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.order.save()
+
+
+# @receiver(post_save, sender=ExtraParameter)
+# def after_save_product(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.product.save()
+
+
+# @receiver(post_delete, sender=ExtraParameter)
+# def after_delete_parameter_lab(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.product.save()

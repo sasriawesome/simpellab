@@ -1,4 +1,5 @@
 from django.db import models
+from simpellab.core.managers import PolymorphicManager
 
 
 class SalesQuotationManager(models.Manager):

@@ -212,7 +212,7 @@ class Product(NumeratorMixin, SimpleBaseModel, PolymorphicModel):
         validators=[MinValueValidator(0)],
         verbose_name=_("total price"))
     suppliers = models.ManyToManyField(
-        Partner, related_name='products',
+        Partner, related_name='products', blank=True,
         limit_choices_to={'is_supplier':True},
         verbose_name=_('Suppliers'))
     is_locked = models.BooleanField(

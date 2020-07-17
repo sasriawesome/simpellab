@@ -61,6 +61,7 @@ class ProductFeeInline(admin.TabularInline):
 
 class ProductMixin(admin.ModelAdmin):
     ordering = ['-created_at']
+    list_display = ['name']
     search_fields = ['inner_id', 'name']
     date_hierarchy = 'created_at'
     raw_id_fields = ['category', 'unit_of_measure']

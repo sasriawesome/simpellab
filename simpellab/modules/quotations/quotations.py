@@ -257,3 +257,29 @@ class QuotationTerm(BaseModel):
 
     def __str__(self):
         return self.term
+
+
+
+
+@receiver(post_save, sender=QuotationExtraFee)
+def after_save_quotation_fee(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.quotation.save()
+
+
+@receiver(post_delete, sender=QuotationExtraFee)
+def after_delete_quotation_fee(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.quotation.save()
+
+
+@receiver(post_save, sender=QuotationProduct)
+def after_save_quotation_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.quotation.save()
+
+
+@receiver(post_delete, sender=QuotationProduct)
+def after_delete_quotation_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.quotation.save()

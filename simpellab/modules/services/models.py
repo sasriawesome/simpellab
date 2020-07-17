@@ -47,7 +47,7 @@ class Parameter(NumeratorMixin, SimpleBaseModel):
     code = models.CharField(
         null=True, blank=True,
         max_length=MaxLength.SHORT.value,
-        verbose_name=_('Name'))
+        verbose_name=_('code'))
     name = models.CharField(
         max_length=MaxLength.LONG.value,
         verbose_name=_('Name'))
@@ -55,6 +55,11 @@ class Parameter(NumeratorMixin, SimpleBaseModel):
         null=True, blank=True,
         max_length=MaxLength.LONG.value,
         verbose_name=_('Description'))
+    price = models.DecimalField(
+        default=0,
+        max_digits=15,
+        decimal_places=2,
+        verbose_name=_('price'))
     unit_of_measure = models.ForeignKey(
         UnitOfMeasure, on_delete=models.PROTECT,
         verbose_name=_('Unit'))
@@ -63,7 +68,7 @@ class Parameter(NumeratorMixin, SimpleBaseModel):
         verbose_name=_('Date effective'))
 
     def __str__(self):
-        return "{} - {}".format(self.service_type, self.name)
+        return "{} - {}".format(self.ptype, self.name)
 
     def natural_key(self):
         keys = (self.inner_id,)
@@ -85,7 +90,7 @@ class LaboratoriumService(Service):
         return 'LAB'
 
     def get_parameter_price(self):
-        return self.parameters.aggregate(
+        return self.lab_parameters.aggregate(
             total_parameters=models.Sum('price')
         )['total_parameters'] or 0
 

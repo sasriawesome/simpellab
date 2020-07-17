@@ -1,0 +1,1 @@
+default_app_config = 'simpellab.modules.sales_research.apps.AppConfig'

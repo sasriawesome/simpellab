@@ -23,7 +23,7 @@ class TarifAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(PolymorphicParentModelAdmin, ModelAdmin):
-    list_display = []
+    list_display = ['name']
     child_models = [
         LaboratoriumService,
         InspectionService,
@@ -44,7 +44,7 @@ class LaboratoriumServiceParameterInline(admin.TabularInline):
 
 @admin.register(LaboratoriumService)
 class ServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
+    list_display = ['name']
     inlines = [ProductFeeInline, LaboratoriumServiceParameterInline]
 
 
@@ -57,13 +57,11 @@ class InspectionServiceParameterInline(admin.TabularInline):
 
 @admin.register(InspectionService)
 class InspectionServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
     inlines = [ProductFeeInline, InspectionServiceParameterInline]
 
 
 @admin.register(CalibrationService)
 class CalibrationServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
     inlines = [ProductFeeInline, SpecificationInline]
 
 
@@ -80,23 +78,19 @@ class TrainingTopicInline(admin.TabularInline):
 
 @admin.register(TrainingService)
 class TrainingServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
     inlines = [ProductFeeInline, SpecificationInline, TrainingTopicInline]
 
 
 @admin.register(ConsultancyService)
 class ConsultancyServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
     inlines = [ProductFeeInline, SpecificationInline]
 
 
 @admin.register(ResearchService)
 class ResearchServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
     inlines = [ProductFeeInline, SpecificationInline]
 
 
 @admin.register(MiscService)
 class MiscServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    list_display = []
     inlines = [ProductFeeInline, SpecificationInline]
