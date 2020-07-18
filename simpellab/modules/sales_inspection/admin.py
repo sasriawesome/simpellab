@@ -40,7 +40,8 @@ class InspectionOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(InspectionOrder)
 class InspectionOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, InspectionOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+    
 
 @hooks.register('sales_order_child_model')
 def register_lab_order():

@@ -25,7 +25,8 @@ class CalibrationOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(CalibrationOrder)
 class CalibrationOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, CalibrationOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+    
 
 @hooks.register('sales_order_child_model')
 def register_kal_order():

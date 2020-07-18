@@ -9,17 +9,19 @@ from simpellab.modules.sales_laboratorium.models import *
 from simpellab.modules.sales.admin import OrderFeeInline
 
 
-class LaboratoriumServiceParameterInline(admin.TabularInline):
-    extra = 0
-    model = LaboratoriumServiceParameter
-    raw_id_fields = ['parameter']
-    readonly_fields = ['price', 'date_effective']
+# class LaboratoriumServiceParameterInline(admin.TabularInline):
+#     extra = 0
+#     model = LaboratoriumServiceParameter
+#     raw_id_fields = ['parameter']
+#     readonly_fields = ['price', 'date_effective']
 
 
 @admin.register(LaboratoriumService)
 class LaboratoriumServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
     list_display = ['name']
-    inlines = [ProductFeeInline, LaboratoriumServiceParameterInline]
+    inlines = [ProductFeeInline, 
+    #LaboratoriumServiceParameterInline
+    ]
 
 
 class LaboratoriumOrderItemExtraParameterInline(nested_admin.NestedTabularInline):
@@ -41,6 +43,7 @@ class LaboratoriumOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(LaboratoriumOrder)
 class LaboratoriumOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, LaboratoriumOrderItemInline]
+    readonly_fields = ['total_order', 'discount', 'grand_total']
 
 
 @hooks.register('sales_order_child_model')

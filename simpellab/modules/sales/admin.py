@@ -86,6 +86,16 @@ class PolymorphicOrderAdmin(PolymorphicParentModelAdmin, OrderAdminBase):
         CommonOrder
     ]
     
+    def get_inspect_context(self, obj, request, extra_context=None):
+        context = {
+            **self.admin_site.each_context(request),
+            'self': self,
+            'opts': self.opts,
+            'instance': obj.get_real_instance(),
+            **(extra_context or {})
+        }
+        return context
+
     def get_child_models(self):
         """ 
             Register child model using hooks
@@ -117,11 +127,10 @@ class CommonOrderItemInline(nested_admin.NestedTabularInline):
     readonly_fields = ['unit_price', 'total_price']
 
 
-
 @admin.register(CommonOrder)
 class CommonOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, CommonOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
 
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):

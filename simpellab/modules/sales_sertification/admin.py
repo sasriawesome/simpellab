@@ -26,7 +26,8 @@ class SertificationOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(SertificationOrder)
 class SertificationAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, SertificationOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+    
 
 @hooks.register('sales_order_child_model')
 def register_pro_order():

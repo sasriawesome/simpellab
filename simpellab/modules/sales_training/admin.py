@@ -30,7 +30,8 @@ class TrainingOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(TrainingOrder)
 class TrainingAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, TrainingOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+    
 
 @hooks.register('sales_order_child_model')
 def register_lat_order():

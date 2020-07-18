@@ -25,7 +25,8 @@ class ResearchOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(ResearchOrder)
 class ResearchAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, ResearchOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+    
 
 @hooks.register('sales_order_child_model')
 def register_research_order():

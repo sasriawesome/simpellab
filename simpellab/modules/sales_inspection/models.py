@@ -39,7 +39,7 @@ class InspectionService(Service):
         return 'LIT'
 
     def get_parameter_price(self):
-        return self.lit_parameters.aggregate(
+        return self.parameters.aggregate(
             total_parameters=models.Sum('price')
         )['total_parameters'] or 0
 
@@ -58,13 +58,12 @@ class InspectionServiceParameter(BaseModel):
     class Meta:
         verbose_name = _('Inspection Parameter')
         verbose_name_plural = _('Inspection Parameters')
-        unique_together = ('service', 'parameter')
 
     _ori_parameter = None
 
     service = models.ForeignKey(
         InspectionService,
-        related_name='lit_parameters',
+        related_name='parameters',
         on_delete=models.CASCADE,
         verbose_name=_('Service'))
     parameter = models.ForeignKey(
@@ -119,7 +118,6 @@ class InspectionOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Inspection Order Item')
         verbose_name_plural = _('Inspection Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'ILIT'
 
@@ -161,7 +159,13 @@ class InspectionOrderItemExtraParameter(ExtraParameterBase):
         verbose_name=_('Parameter'))
     
     def get_default_parameters(self):
-        return self.order_item.product.lit_parameters
+        return self.order_item.product.parameters
+
+
+@receiver(post_save, sender=InspectionServiceParameter)
+def after_save_order_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.product.save()
 
 
 @receiver(post_save, sender=InspectionOrderItem)

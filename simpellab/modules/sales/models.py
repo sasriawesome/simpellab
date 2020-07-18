@@ -140,7 +140,8 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         self.calc_grand_total()
 
     def save(self, *args, **kwargs):
-        self.calc_all_total()
+        if self.__class__.__name__ != 'SalesOrder':
+            self.calc_all_total()
         self.clean()
         super().save(*args, **kwargs)
 
@@ -214,7 +215,7 @@ class OrderItem(NumeratorMixin, PolymorphicModel, SimpleBaseModel):
     _ori_product = None
 
     name = models.CharField(
-        null=True, blank=True,
+        null=True, blank=False,
         max_length=MaxLength.LONG.value,
         verbose_name=_('Name'))
     unit_price = models.DecimalField(
@@ -268,7 +269,6 @@ class OrderItem(NumeratorMixin, PolymorphicModel, SimpleBaseModel):
         super().save(*args, **kwargs)
 
 
-
 class CommonOrder(SalesOrder):
     class Meta:
         verbose_name = _('Common Order')
@@ -278,11 +278,11 @@ class CommonOrder(SalesOrder):
         """ Get child object order_items """
         return self.order_items
 
+
 class CommonOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Common Order Item')
         verbose_name_plural = _('Common Order Items')
-        unique_together = ('order', 'product')
         
     doc_prefix = 'SOI'
     order = models.ForeignKey(

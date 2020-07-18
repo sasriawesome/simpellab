@@ -117,10 +117,15 @@ class ModelAdmin(NumericFilterModelAdmin, ModelAdminMenuMixin, admin.ModelAdmin)
             )
         return custom_urls + urls
 
-    def inspect_view(self, request, object_id, extra_context=None):
-        obj = self.get_object(request, object_id)
-        if not self.has_view_or_change_permission(request, obj):
-            return PermissionError("You don't have any permissions")
+    def get_inspect_template(self):
+        print('admin/%s/%s/inspect.html' % (self.opts.app_label, self.opts.model_name))
+        return self.inspect_template or [
+            'admin/%s/%s/inspect.html' % (self.opts.app_label, self.opts.model_name),
+            'admin/%s/inspect.html' % self.opts.app_label,
+            'admin/inspect.html'
+        ]
+
+    def get_inspect_context(self, obj, request, extra_context=None):
         context = {
             **self.admin_site.each_context(request),
             'self': self,
@@ -128,12 +133,14 @@ class ModelAdmin(NumericFilterModelAdmin, ModelAdminMenuMixin, admin.ModelAdmin)
             'instance': obj,
             **(extra_context or {})
         }
+        return context
 
-        return TemplateResponse(request, self.inspect_template or [
-            'admin/%s_%s_inspect.html' % (self.opts.app_label, self.opts.model_name),
-            'admin/%s_inspect.html' % self.opts.app_label,
-            'admin/inspect.html'
-        ], context)
+    def inspect_view(self, request, object_id, extra_context=None):
+        obj = self.get_object(request, object_id)
+        if not self.has_view_or_change_permission(request, obj):
+            return PermissionError("You don't have any permissions")
+        context = self.get_inspect_context(obj, request, extra_context)
+        return TemplateResponse(request, self.get_inspect_template(), context)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         obj = self.get_object(request, object_id)

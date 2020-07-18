@@ -44,7 +44,6 @@ class CalibrationOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Calibration Order Item')
         verbose_name_plural = _('Calibration Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'IKAL'
 

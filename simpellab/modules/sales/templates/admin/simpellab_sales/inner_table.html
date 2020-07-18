@@ -1,0 +1,17 @@
+<table class="inner-table">
+<thead>
+    <tr class="inner-table__row">
+    <th colspan="4" class="inner-table__head">{{ inner_title }}</th>
+    </tr>
+</thead>
+<tbody>
+    {% for item in items %}
+    <tr>
+    <td class="small inner-table__col">{{ item }}</td>
+    <td class="small inner-table__col" width="60">{{ item.unit_of_measure }}</td>
+    <td class="small inner-table__col text-right" width="60">{{ item.price }}</td>
+    <td class="small inner-table__col" width="60">{{ item.date_effective }}</td>
+    </tr>    
+    {% endfor %}
+</tbody>
+</table>

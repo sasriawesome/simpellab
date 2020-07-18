@@ -44,7 +44,6 @@ class ResearchOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Research Order Item')
         verbose_name_plural = _('Research Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'ILIB'
 

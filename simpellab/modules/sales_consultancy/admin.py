@@ -25,7 +25,8 @@ class ConsultancyOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(ConsultancyOrder)
 class ConsultancyAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, ConsultancyOrderItemInline]
-
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+    
 
 @hooks.register('sales_order_child_model')
 def register_ksl_order():

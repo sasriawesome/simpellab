@@ -25,6 +25,7 @@ class MiscOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(MiscOrder)
 class MiscAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, MiscOrderItemInline]
+    readonly_fields = ['total_order', 'discount', 'grand_total']
 
 
 @hooks.register('sales_order_child_model')

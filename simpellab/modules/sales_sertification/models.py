@@ -44,7 +44,6 @@ class SertificationOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Sertification Order Item')
         verbose_name_plural = _('Sertification Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'IPRO'
 

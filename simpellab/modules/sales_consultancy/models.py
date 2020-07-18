@@ -44,7 +44,6 @@ class ConsultancyOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Consultancy Order Item')
         verbose_name_plural = _('Consultancy Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'IKSL'
 

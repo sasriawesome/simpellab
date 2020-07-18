@@ -16,7 +16,7 @@ _ = translation.ugettext_lazy
 
 __all__ = [
     'LaboratoriumService',
-    'LaboratoriumServiceParameter',
+    # 'LaboratoriumServiceParameter',
     'LaboratoriumOrder',
     'LaboratoriumOrderItem',
     'LaboratoriumOrderItemExtraParameter'
@@ -38,7 +38,7 @@ class LaboratoriumService(Service):
         return 'LAB'
 
     def get_parameter_price(self):
-        return self.lab_parameters.aggregate(
+        return self.parameters.aggregate(
             total_parameters=models.Sum('price')
         )['total_parameters'] or 0
 
@@ -53,31 +53,55 @@ class LaboratoriumService(Service):
         super().save(*args, **kwargs)
 
 
-class LaboratoriumServiceParameter(BaseModel):
-    class Meta:
-        verbose_name = _('Laboratorium Parameter')
-        verbose_name_plural = _('Laboratorium Parameters')
-        unique_together = ('service', 'parameter')
+# class LaboratoriumServiceParameter(BaseModel):
+#     class Meta:
+#         verbose_name = _('Laboratorium Parameter')
+#         verbose_name_plural = _('Laboratorium Parameters')
+#         unique_together = ('service', 'parameter')
 
-    _ori_parameter = None
+#     _ori_parameter = None
 
-    service = models.ForeignKey(
-        LaboratoriumService,
-        related_name='lab_parameters',
-        on_delete=models.CASCADE,
-        verbose_name=_('Service'))
-    parameter = models.ForeignKey(
-        Parameter, on_delete=models.CASCADE,
-        related_name='lab_services',
-        verbose_name=_('Parameter'))
-    price = models.DecimalField(
-        default=0,
-        max_digits=15,
-        decimal_places=2,
-        verbose_name=_('Price'))
-    date_effective = models.DateField(
-        default=timezone.now,
-        verbose_name=_('Date effective'))
+#     service = models.ForeignKey(
+#         LaboratoriumService,
+#         related_name='parameters',
+#         on_delete=models.CASCADE,
+#         verbose_name=_('Service'))
+#     parameter = models.ForeignKey(
+#         Parameter, on_delete=models.CASCADE,
+#         related_name='lab_services',
+#         verbose_name=_('Parameter'))
+#     price = models.DecimalField(
+#         default=0,
+#         max_digits=15,
+#         decimal_places=2,
+#         verbose_name=_('Price'))
+#     date_effective = models.DateField(
+#         default=timezone.now,
+#         verbose_name=_('Date effective'))
+
+#     def __str__(self):
+#         return str(self.parameter)
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if getattr(self, 'parameter', False):
+#             self._ori_parameter = self.parameter
+
+#     def clean(self):
+#         not_adding = self._state.adding is False
+#         is_changed = self._ori_parameter != self.parameter
+#         if not_adding and is_changed:
+#             msg = _("Parameter can't be changed, please delete instead.")
+#             raise ValidationError({"parameter": msg})
+#         pass
+
+#     def save(self, *args, **kwargs):
+#         self.clean()
+#         if not self.price:
+#             self.price = self.parameter.price
+#         if not self.date_effective:
+#             self.date_effective = self.parameter.date_effective
+#         super().save(*args, **kwargs)
 
 
 class LaboratoriumOrder(SalesOrder):
@@ -89,11 +113,11 @@ class LaboratoriumOrder(SalesOrder):
         """ Get child object order_items """
         return self.order_items
 
+
 class LaboratoriumOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Laboratorium Order Item')
         verbose_name_plural = _('Laboratorium Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'ILAB'
 
@@ -103,7 +127,7 @@ class LaboratoriumOrderItem(OrderItem):
         related_name='order_items')
     product = models.ForeignKey(
         LaboratoriumService,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='orders')
     
     def get_parameter_prices(self):
@@ -135,7 +159,19 @@ class LaboratoriumOrderItemExtraParameter(ExtraParameterBase):
         verbose_name=_('Parameter'))
 
     def get_default_parameters(self):
-        return self.order_item.product.lab_parameters
+        return self.order_item.product.parameters
+
+
+# @receiver(post_save, sender=LaboratoriumServiceParameter)
+# def after_save_lab_parameter(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.service.save()
+
+
+# @receiver(post_delete, sender=LaboratoriumServiceParameter)
+# def after_delete_lab_parameter(sender, **kwargs):
+#     instance = kwargs.pop('instance', None)
+#     instance.service.save()
 
 
 @receiver(post_save, sender=LaboratoriumOrderItem)

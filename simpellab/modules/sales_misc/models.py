@@ -47,7 +47,6 @@ class MiscOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Misc Order Item')
         verbose_name_plural = _('Misc Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'ILNY'
 
@@ -57,7 +56,7 @@ class MiscOrderItem(OrderItem):
         related_name='order_items')
     product = models.ForeignKey(
         MiscService,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='orders')
 
 

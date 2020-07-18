@@ -73,7 +73,6 @@ class TrainingOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Training Order Item')
         verbose_name_plural = _('Training Order Items')
-        unique_together = ('order', 'product')
 
     doc_prefix = 'ILAT'
 

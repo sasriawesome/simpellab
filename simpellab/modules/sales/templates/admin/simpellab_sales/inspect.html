@@ -1,0 +1,100 @@
+{% extends 'admin/inspect.html' %}
+
+{% load i18n static admin_urls admin_modify simpellab_admin_tags %}
+
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .inner-table__head {
+        background: none;
+        border-top: none;
+        padding-left: 0;
+        text-transform: capitalize;
+    }
+  .small.inner-table__col {
+      padding: 3px 7px 2px 0;
+      border-bottom: none;
+  }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>{{ instance }}</h2>
+  <div class="module">
+    <table class="model">
+      <h2 class="subhead">{% trans 'Product and Services' %}</h2>
+      <thead>
+        <tr>
+          <th width="80">Tracking ID</th>
+          <th>Name</th>
+          <th width="70" class="text-right">Unit Price</th>
+          <th width="40" class="text-center">Qty</th>
+          <th width="70" class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in instance.order_items.all|dictsort:"created_at" %}
+        <tr>
+          <td>{{ row.inner_id }}</td>
+          <td>
+            <div><strong>{{ row.name | upper }}</strong></div>
+            <p class="small">{{ row.product.inner_id }} {{ row.product.name }}</p>
+            
+          {% if row.product.parameters.all %}
+            {% include 'admin/simpellab_sales/inner_table.html' with items=row.product.parameters.all inner_title='Parameters' %}
+          {% endif %}
+
+          {% if row.extra_parameters.all %}
+            {% include 'admin/simpellab_sales/inner_table.html' with items=row.extra_parameters.all inner_title='Extra Parameters' %}
+          {% endif %}
+
+          {% if row.product.product_fees.all %}
+              {% include 'admin/simpellab_sales/inner_table.html' with items=row.product.product_fees.all inner_title='Sample Fees' %}
+          {% endif %}
+          </td>
+          <td class="text-right">
+            <div>{{ row.unit_price }}</div>
+            <p class="small">{{ row.product.unit_of_measure }}</p>
+          </td>
+          <td class="text-center">{{ row.quantity }}</td>
+          <td class="text-right">{{ row.total_price }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <table class="model">
+      <h2 class="subhead">{% trans 'Order Fees' %}</h2>
+      <thead>
+        <tr>
+          <th>Fee</th>
+          <th width="70" class="text-right">Amount</th>
+          <th width="40" class="text-center">Qty</th>
+          <th width="70" class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in instance.order_fees.all|dictsort:"created_at" %}
+        <tr>
+          <td>
+            <strong>{{ row.fee | upper }}</strong>
+            <p class="small">{{ row.fee.description }}</p>
+          </td>
+          <td class="text-right">
+            <div>{{ row.amount }}</div>
+            <p class="small">{{ row.fee.unit_of_measure }}</p>
+          </td>
+          <td class="text-center">{{ row.quantity }}</td>
+          <td class="text-right">{{ row.total_fee }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="small">
+    <a href="{% url opts|admin_urlname:'changelist' %}">&lsaquo; {% trans 'Back to' %} {{ opts.verbose_name_plural|capfirst }}</a>
+  </p>
+</div>
+{% endblock %}
