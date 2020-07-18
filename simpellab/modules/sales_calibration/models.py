@@ -4,15 +4,28 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django_numerators.models import NumeratorMixin
 
-from simpellab.core.models import SimpleBaseModel
 from simpellab.core.enums import MaxLength
-from simpellab.modules.services.models import CalibrationService
-from simpellab.modules.sales.models import SalesOrder, OrderItemBase
+from simpellab.core.models import SimpleBaseModel, BaseModel
+from simpellab.modules.products.models import Service, Parameter
+from simpellab.modules.sales.models import SalesOrder, OrderItemBase, ExtraParameterBase
 
 _ = translation.ugettext_lazy
 
 
-__all__ = ['CalibrationOrder', 'CalibrationOrderItem']
+__all__ = [
+    'CalibrationService',
+    'CalibrationOrder',
+    'CalibrationOrderItem'
+]
+
+
+class CalibrationService(Service):
+    class Meta:
+        verbose_name = _('Calibration')
+        verbose_name_plural = _('Calibration')
+
+    def get_doc_prefix(self):
+        return 'KAL'
 
 
 class CalibrationOrder(SalesOrder):

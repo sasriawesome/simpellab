@@ -15,17 +15,19 @@ from simpellab.core.models import BaseModel, SimpleBaseModel
 from simpellab.core.mixins import ThreeStepStatusMixin, StatusMixin, PaidMixin, TrashMixin, CloseMixin
 from simpellab.modules.partners.models import Partner
 from simpellab.modules.products.enums import ProductType
-from simpellab.modules.products.models import Fee
+from simpellab.modules.products.models import Fee, Product
 from simpellab.modules.sales.managers import SalesOrderManager
 
 
 _ = translation.gettext_lazy
 
 __all__ = [
-    'SalesOrder',
-    'OrderFee',
+    'SalesOrder', # Base Class
     'OrderItemBase',
     'ExtraParameterBase',
+    'OrderFee',
+    'CommonOrder',
+    'CommonOrderItem',
     'Invoice'
 ]
 
@@ -56,6 +58,8 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         )
 
     doc_prefix = 'SPJ'
+    parent_prefix = True
+    parent_model = 'simpellab_sales.SalesOrder'
 
     customer = models.ForeignKey(
         Partner, on_delete=models.PROTECT,
@@ -92,14 +96,16 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         verbose_name=_('Grand Total'))
 
     def __str__(self):
-        return "{} ({})".format(self.inner_id, self.customer.name)
+        return "{}".format(self.inner_id)
 
     @property
     def grand_total_text(self):
         return number_to_text_id(self.grand_total)
 
+    def get_order_items():
+        return self.items
+
     def calc_total_order(self):
-        # FakeQuerySet doesn't have aggregate
         total_products = self.order_items.aggregate(
                 val=models.Sum('total_price')
             )['val'] or 0
@@ -223,7 +229,7 @@ class OrderItemBase(SimpleBaseModel):
             self._ori_product = self.product
 
     def __str__(self):
-        return self.name
+        return str(self.product)
 
     def clean(self):
         not_adding = self._state.adding is False
@@ -236,18 +242,40 @@ class OrderItemBase(SimpleBaseModel):
             raise ValidationError({"product": msg})
         super().clean()
 
-    def get_parameter_prices(self):
-        return self.extra_parameters.aggregate(
-            total_parameters=models.Sum('price')
-        )['total_parameters'] or 0
+    def calculate_unit_price(self):
+        unit_price = self.product.get_real_instance().total_price
+        return unit_price
 
     def save(self, *args, **kwargs):
-        base_price = self.product.get_real_instance().total_price
-        extra_parameters = self.get_parameter_prices()
-        self.unit_price = base_price + extra_parameters
+        self.unit_price = self.calculate_unit_price()
         self.total_price = self.quantity * self.unit_price
         self.clean()
         super().save(*args, **kwargs)
+
+
+
+class CommonOrder(SalesOrder):
+    class Meta:
+        verbose_name = _('Common Order')
+        verbose_name_plural = _('Common Orders')
+
+
+class CommonOrderItem(OrderItemBase):
+    class Meta:
+        verbose_name = _('Common Order Item')
+        verbose_name_plural = _('Common Order Items')
+    
+    doc_prefix = 'SOI'
+
+    order = models.ForeignKey(
+        CommonOrder,
+        on_delete=models.CASCADE,
+        related_name='order_items',
+        verbose_name=_('sales order'))
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name='sales_orders')
 
 
 class ExtraParameterBase(BaseModel):
@@ -309,10 +337,17 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         SalesOrder,
         on_delete=models.PROTECT,
         verbose_name=_('sales order'))
+    billed_to = models.ForeignKey(
+        Partner, null=True, blank=False,
+        editable=False,
+        limit_choices_to={'is_customer':True},
+        on_delete=models.PROTECT, 
+        verbose_name=_('Customer')
+        )
     due_date = models.DateTimeField(
         default=timezone.now, verbose_name=_('Due date'))
     description = models.TextField(
-        max_length=MaxLength.TEXT,
+        max_length=MaxLength.TEXT.value,
         blank=True, null=True, verbose_name=_('Description'))
     total_order = models.DecimalField(
         default=0, max_digits=15,
@@ -372,6 +407,10 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
     @property
     def close_valid_condition(self):
         return self.is_paid and self.grand_total == self.paid
+
+    def save(self, *args, **kwargs):
+        self.billed_to = self.sales_order.customer
+        super().save(*args, **kwargs)
 
 
 # @receiver(post_save, sender=OrderFee)

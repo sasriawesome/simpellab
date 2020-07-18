@@ -4,11 +4,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 
-_admin_menu_registry = []
-
-
-def register_menu(func):
-    _admin_menu_registry.append(func)
+from simpellab.core import hooks
 
 
 class MenuItem(metaclass=MediaDefiningClass):
@@ -87,16 +83,24 @@ class AdminOnlyMenuItem(MenuItem):
 
 class Menu:
 
-    def __init__(self):
+    hook_name = None
+
+    def __init__(self, hook_name):
+        if not isinstance(hook_name, str):
+            return ValueError('Hookname must be a string')
         self._registered_menu_items = []
+        self.hook_name = hook_name
 
     def register(self, func):
+        # Deprecated
+        print(DeprecationWarning("Registering %s, Please use hooks.register('menu_item_hook_name')" % func))
         self._registered_menu_items.append(func)
-        
 
     @property
     def registered_menu_items(self):
-        return self._registered_menu_items
+        menu_item_from_register = self._registered_menu_items
+        menu_from_hooks = hooks.get_hooks(self.hook_name)
+        return menu_item_from_register + menu_from_hooks
 
     def menu_items_for_request(self, request):
         menu_items = [item(request) for item in self.registered_menu_items]
@@ -124,4 +128,4 @@ class Menu:
         return mark_safe(''.join(rendered_menu_items))
 
 
-website_menu = Menu()
+website_menu = Menu(hook_name='website_menu_item')

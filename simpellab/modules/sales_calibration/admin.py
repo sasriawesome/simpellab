@@ -2,10 +2,17 @@ import nested_admin
 from django.contrib import admin
 from polymorphic.admin import PolymorphicChildModelAdmin
 
+from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
+from simpellab.modules.products.admin import ProductMixin, ProductFeeInline, SpecificationInline
 from simpellab.modules.sales.admin import OrderFeeInline
 from simpellab.modules.sales_calibration.models import *
 
+
+@admin.register(CalibrationService)
+class CalibrationServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
+    inlines = [ProductFeeInline, SpecificationInline]
+    
 
 class CalibrationOrderItemInline(nested_admin.NestedStackedInline):
     extra = 0
@@ -18,3 +25,13 @@ class CalibrationOrderItemInline(nested_admin.NestedStackedInline):
 @admin.register(CalibrationOrder)
 class CalibrationOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, CalibrationOrderItemInline]
+
+
+@hooks.register('sales_order_child_model')
+def register_kal_order():
+    return CalibrationOrder
+
+
+@hooks.register('product_child_model')
+def register_kal_service():
+    return CalibrationService

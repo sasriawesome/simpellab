@@ -13,41 +13,43 @@ _ = translation.ugettext_lazy
 
 
 __all__ = [
-    'ConsultancyService',
-    'ConsultancyOrder',
-    'ConsultancyOrderItem'
+    'MiscService',
+    'MiscOrder',
+    'MiscOrderItem'
 ]
 
 
-class ConsultancyService(Service):
+class MiscService(Service):
+    """
+        Service Concrete Class
+    """
     class Meta:
-        verbose_name = _('Consultancy')
-        verbose_name_plural = _('Consultancies')
+        verbose_name = _('Service')
+        verbose_name_plural = _('Services')
 
     def get_doc_prefix(self):
-        return 'KSL'
+        return 'LNY'
 
 
-class ConsultancyOrder(SalesOrder):
+class MiscOrder(SalesOrder):
     class Meta:
-        verbose_name = _('Consultancy Order')
-        verbose_name_plural = _('Consultancy Orders')
+        verbose_name = _('Misc Order')
+        verbose_name_plural = _('Misc Orders')
 
-
-class ConsultancyOrderItem(NumeratorMixin, OrderItemBase):
+class MiscOrderItem(NumeratorMixin, OrderItemBase):
     class Meta:
-        verbose_name = _('Consultancy Order Item')
-        verbose_name_plural = _('Consultancy Order Items')
+        verbose_name = _('Misc Order Item')
+        verbose_name_plural = _('Misc Order Items')
         ordering = ('product',)
         unique_together = ('order', 'product')
 
-    doc_prefix = 'IKSL'
+    doc_prefix = 'ILNY'
 
     order = models.ForeignKey(
-        ConsultancyOrder, 
+        MiscOrder, 
         on_delete=models.CASCADE,
         related_name='order_items')
     product = models.ForeignKey(
-        ConsultancyService,
+        MiscService,
         on_delete=models.PROTECT,
         related_name='orders')

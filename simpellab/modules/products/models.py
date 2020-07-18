@@ -23,6 +23,22 @@ from simpellab.modules.products.mixins import SellableMixin, StockableMixin
 _ = translation.gettext_lazy
 
 
+__all__ = [
+    'UnitOfMeasure',
+    'Fee',
+    'Category',
+    'Parameter',
+    'Tag',
+    'Product',
+    'TaggedProduct',
+    'Specification',
+    'ProductFee',
+    'Inventory',
+    'Asset',
+    'Service'
+]
+
+
 class SnippetBaseManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
@@ -139,6 +155,57 @@ class Category(BaseModel, MPTTModel):
         if not self.slug:
             unique_slugify(self, self.name)
         return super().save(*args, **kwargs)
+
+
+class Parameter(NumeratorMixin, SimpleBaseModel):
+    class Meta:
+        verbose_name = _('Parameter')
+        verbose_name_plural = _('Parameters')
+
+    doc_prefix = 'PRM'
+
+    LAB = _('Laboratory')
+    LIT = _('Inspection')
+
+    TYPE = (
+        ('LAB', _('Laboratory')),
+        ('LIT', _('Inspection')),
+    )
+
+    ptype = models.CharField(
+        max_length=3,
+        choices=TYPE,
+        default=LAB,
+        verbose_name=_('Parameter type'))
+    code = models.CharField(
+        null=True, blank=True,
+        max_length=MaxLength.SHORT.value,
+        verbose_name=_('code'))
+    name = models.CharField(
+        max_length=MaxLength.LONG.value,
+        verbose_name=_('Name'))
+    description = models.TextField(
+        null=True, blank=True,
+        max_length=MaxLength.LONG.value,
+        verbose_name=_('Description'))
+    price = models.DecimalField(
+        default=0,
+        max_digits=15,
+        decimal_places=2,
+        verbose_name=_('price'))
+    unit_of_measure = models.ForeignKey(
+        UnitOfMeasure, on_delete=models.PROTECT,
+        verbose_name=_('Unit'))
+    date_effective = models.DateField(
+        default=timezone.now,
+        verbose_name=_('Date effective'))
+
+    def __str__(self):
+        return "{} - {}".format(self.ptype, self.name)
+
+    def natural_key(self):
+        keys = (self.inner_id,)
+        return keys
 
 
 class Tag(TagBase):
@@ -397,7 +464,25 @@ class Asset(StockableMixin, Product):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        
+
+class Service(Product):
+    class Meta:
+        verbose_name = _('Service')
+        verbose_name_plural = _('Services')
+        permissions = (
+            ('lock_service', 'Can lock Service'),
+            ('unlock_service', 'Can unlock Service'),
+            ('export_service', 'Can export Service'),
+            ('import_service', 'Can import Service')
+        )
+
+    def get_doc_prefix(self):
+        return 'SRV'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+
 @receiver(post_save, sender=ProductFee)
 def after_save_product_fee(sender, **kwargs):
     instance = kwargs.pop('instance', None)

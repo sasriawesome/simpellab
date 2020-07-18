@@ -1,1 +1,0 @@
-default_app_config = 'simpellab.modules.services.apps.AppConfig'

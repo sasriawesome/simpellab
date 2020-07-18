@@ -1,35 +1,39 @@
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin
 
-from simpellab.admin.admin import ModelAdmin
-from .models import (
-    Product, Asset, Inventory,
-    Fee, Tag, Category, UnitOfMeasure, Specification,
-    ProductFee
-)
+from simpellab.core import hooks
+from simpellab.admin.menus import admin_menu
+from simpellab.admin.admin import ModelAdmin, ModelMenuGroup
+from simpellab.modules.products.models import *
 from .filters import ProductChildFilter
 
 
 @admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    pass
+class TagAdmin(ModelAdmin):
+    menu_icon = 'tag'
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    pass
+class CategoryAdmin(ModelAdmin):
+    menu_icon = 'tag'
 
 
 @admin.register(UnitOfMeasure)
-class UnitOfMeasureAdmin(admin.ModelAdmin):
-    show_in_index = True
+class UnitOfMeasureAdmin(ModelAdmin):
     search_fields = ['name']
+    menu_icon = 'tag'
 
+
+@admin.register(Parameter)
+class ParameterAdmin(ModelAdmin):
+    raw_id_fields = ['unit_of_measure']
+    menu_icon = 'filter'
 
 @admin.register(Fee)
-class FeeAdmin(admin.ModelAdmin):
+class FeeAdmin(ModelAdmin):
     raw_id_fields = ['unit_of_measure']
-
+    menu_icon = 'tag'
 
 class ProductChildAdmin(PolymorphicChildModelAdmin, ModelAdmin):
     base_model = Product
@@ -38,6 +42,7 @@ class ProductChildAdmin(PolymorphicChildModelAdmin, ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(PolymorphicParentModelAdmin, ModelAdmin):
     """ Parent admin Product Model, set child model in settings """
+    menu_icon = 'package'
     search_fields = ['name']
     child_models = [
         Asset,
@@ -45,6 +50,28 @@ class ProductAdmin(PolymorphicParentModelAdmin, ModelAdmin):
     ]
     list_filter = [ProductChildFilter]
     list_display = ['inner_id', 'name', 'price', 'fee', 'total_price']
+
+    def get_child_models(self):
+        """ 
+            Register child model using hooks
+
+            @hooks.register('product_child_model', order=1)
+            def register_child_model():
+                return ProductChildModel
+            
+        """
+        super_child_models = super().get_child_models()
+        child_models = list(super_child_models).copy()
+        
+        # list function that return Product subclass
+        func_list = hooks.get_hooks('product_child_model')
+        for func in func_list:
+            value = func()
+            if issubclass(value, Product):
+                child_models.append(value)
+            else:
+                raise ImproperlyConfigured('Hook product_child_model should return Product subclass')
+        return child_models
 
 
 class SpecificationInline(admin.StackedInline):
@@ -59,7 +86,7 @@ class ProductFeeInline(admin.TabularInline):
     readonly_fields = ['price', 'date_effective']
 
 
-class ProductMixin(admin.ModelAdmin):
+class ProductMixin(ModelAdmin):
     ordering = ['-created_at']
     list_display = ['name']
     search_fields = ['inner_id', 'name']
@@ -79,54 +106,27 @@ class InventoryAdmin(ProductMixin, ProductChildAdmin, ModelAdmin):
     pass
 
 
-
-# @admin.register(ANYService)
-# class ANYServiceAdmin(ProductMixin, ProductChildAdmin):
-#     pass
-#
-#
-# @admin.register(KALService)
-# class KALServiceAdmin(ProductMixin, ProductChildAdmin):
-#     pass
-#
-#
-# @admin.register(KSLService)
-# class KSLServiceAdmin(ProductMixin, ProductChildAdmin):
-#     pass
-#
-#
-# @admin.register(LIBService)
-# class LIBServiceAdmin(ProductMixin, ProductChildAdmin):
-#     pass
-#
-#
-# @admin.register(PROService)
-# class PROServiceAdmin(ProductMixin, ProductChildAdmin):
-#     pass
+@admin.register(Service)
+class ServiceAdmin(ProductMixin, ProductChildAdmin, ModelAdmin):
+    pass
 
 
-# @admin.register(LATService)
-# class LATServiceAdmin(ProductMixin, ProductChildAdmin):
-#     pass
-#
-#
+class ProductModelMenuGroup(ModelMenuGroup):
+    adminsite = admin.site
+    menu_icon = 'package'
+    menu_label = _('Product and Services')
+    menu_order = 2
+    items = [ 
+        (Product, ProductAdmin), 
+        (Parameter, ParameterAdmin), 
+        (Category, CategoryAdmin), 
+        (UnitOfMeasure, UnitOfMeasureAdmin), 
+        (Tag, TagAdmin), 
+        (Fee, FeeAdmin), 
+    ]
 
-#
-#
-# @admin.register(LABService)
-# class LABServiceAdmin(ProductChildAdmin):
-#     readonly_fields = ['price', 'fee', 'total_price']
-#     inlines = [ProductFeeInline]
-#
-#
-# class LITParameterInline(admin.TabularInline):
-#     extra = 0
-#     model = LITParameter
-#     raw_id_fields = ['parameter']
-#     readonly_fields = ['price', 'date_effective']
-#
-#
-# @admin.register(LITService)
-# class LITServiceAdmin(ProductChildAdmin):
-#     readonly_fields = ['price', 'fee', 'total_price']
-#     inlines = [ProductFeeInline]
+
+@hooks.register('admin_menu_item')
+def register_product_menu(request):
+    group = ProductModelMenuGroup()
+    return group.get_menu_item()

@@ -72,4 +72,4 @@ class SubMenu(Menu):
         self._registered_menu_items = menuitem_list
 
 
-admin_menu = Menu()
+admin_menu = Menu(hook_name='admin_menu_item')

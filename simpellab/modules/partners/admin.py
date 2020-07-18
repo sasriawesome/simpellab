@@ -38,7 +38,7 @@ class PartnerAddressInline(admin.StackedInline):
 
 @admin.register(Partner)
 class PartnerAdmin(ModelAdmin):
-    show_in_index = True
+    menu_icon = 'account'
     search_fields = ['owner__company__name']
     list_display = ['inner_id', 'name', 'is_customer', 'is_supplier', 'is_active', 'created_at']
     inlines = [PartnerContactInline, PartnerAddressInline, ContactPersonInline]

@@ -7,6 +7,7 @@ from django.urls import path
 
 from admin_numeric_filter.admin import NumericFilterModelAdmin
 
+from simpellab.core import hooks
 from simpellab.admin.views import PDFPrintDetailView
 from simpellab.admin.sites import admin_site
 from simpellab.admin.menus import (
@@ -229,7 +230,8 @@ class ModelMenuGroup:
             item_order += 1
         return menu_items
 
-@admin_menu.register
+
+@hooks.register('admin_menu_item')
 def admin_home_menu(request):
     return MenuItem(
         'Home', reverse('admin:index'), 'home', 'home_menu', order=1

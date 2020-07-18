@@ -4,18 +4,28 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django_numerators.models import NumeratorMixin
 
-from simpellab.core.models import SimpleBaseModel
 from simpellab.core.enums import MaxLength
-from simpellab.modules.services.models import ResearchService
-from simpellab.modules.sales.models import SalesOrder, OrderItemBase
+from simpellab.core.models import SimpleBaseModel, BaseModel
+from simpellab.modules.products.models import Service, Parameter
+from simpellab.modules.sales.models import SalesOrder, OrderItemBase, ExtraParameterBase
 
 _ = translation.ugettext_lazy
 
 
 __all__ = [
+    'ResearchService',
     'ResearchOrder',
     'ResearchOrderItem'
 ]
+
+
+class ResearchService(Service):
+    class Meta:
+        verbose_name = _('Research and Development')
+        verbose_name_plural = _('Research and Developments')
+
+    def get_doc_prefix(self):
+        return 'LIB'
 
 
 class ResearchOrder(SalesOrder):
