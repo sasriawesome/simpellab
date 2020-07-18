@@ -23,7 +23,7 @@ _ = translation.gettext_lazy
 
 __all__ = [
     'SalesOrder', # Base Class
-    'OrderItemBase',
+    'OrderItem', # Base Class
     'ExtraParameterBase',
     'OrderFee',
     'CommonOrder',
@@ -61,6 +61,15 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
     parent_prefix = True
     parent_model = 'simpellab_sales.SalesOrder'
 
+    contract = models.BooleanField(
+        default=False,
+        help_text=_('This order is based on customer contract')
+        )
+    contract_number = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Contract number')
+    )
     customer = models.ForeignKey(
         Partner, on_delete=models.PROTECT,
         limit_choices_to={'is_customer':True},
@@ -102,11 +111,15 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
     def grand_total_text(self):
         return number_to_text_id(self.grand_total)
 
-    def get_order_items():
-        return self.items
+    def get_order_items(self):
+        """ Get child object order_items """
+        raise NotImplementedError(
+                ('SalesOrder subclass %s should implement' 
+                + ' get_order_items() that '
+                + 'return order_items queryset') % self.__class__.__name__)
 
     def calc_total_order(self):
-        total_products = self.order_items.aggregate(
+        total_products = self.get_order_items().aggregate(
                 val=models.Sum('total_price')
             )['val'] or 0
         total_fees = self.order_fees.aggregate(
@@ -192,9 +205,11 @@ class OrderFee(BaseModel):
         super().save(*args, **kwargs)
 
 
-class OrderItemBase(SimpleBaseModel):
+class OrderItem(NumeratorMixin, PolymorphicModel, SimpleBaseModel):
     class Meta:
-        abstract = True
+        verbose_name = _('Order Item')
+        verbose_name_plural = _('Order Items')
+        ordering = ('created_at',)
 
     _ori_product = None
 
@@ -229,7 +244,7 @@ class OrderItemBase(SimpleBaseModel):
             self._ori_product = self.product
 
     def __str__(self):
-        return str(self.product)
+        return str(self.inner_id)
 
     def clean(self):
         not_adding = self._state.adding is False
@@ -259,14 +274,17 @@ class CommonOrder(SalesOrder):
         verbose_name = _('Common Order')
         verbose_name_plural = _('Common Orders')
 
+    def get_order_items(self):
+        """ Get child object order_items """
+        return self.order_items
 
-class CommonOrderItem(OrderItemBase):
+class CommonOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Common Order Item')
         verbose_name_plural = _('Common Order Items')
-    
+        unique_together = ('order', 'product')
+        
     doc_prefix = 'SOI'
-
     order = models.ForeignKey(
         CommonOrder,
         on_delete=models.CASCADE,
@@ -413,37 +431,25 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         super().save(*args, **kwargs)
 
 
-# @receiver(post_save, sender=OrderFee)
-# def after_save_order_fee(sender, **kwargs):
-#     instance = kwargs.pop('instance', None)
-#     instance.order.save()
+@receiver(post_save, sender=OrderFee)
+def after_save_order_fee(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.order.save()
 
 
-# @receiver(post_delete, sender=OrderFee)
-# def after_delete_order_fee(sender, **kwargs):
-#     instance = kwargs.pop('instance', None)
-#     instance.order.save()
+@receiver(post_delete, sender=OrderFee)
+def after_delete_order_fee(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.order.save()
 
 
-# @receiver(post_save, sender=OrderProduct)
-# def after_save_order_product(sender, **kwargs):
-#     instance = kwargs.pop('instance', None)
-#     instance.order.save()
+@receiver(post_save, sender=CommonOrderItem)
+def after_save_order_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.order.save()
 
 
-# @receiver(post_delete, sender=OrderProduct)
-# def after_delete_order_product(sender, **kwargs):
-#     instance = kwargs.pop('instance', None)
-#     instance.order.save()
-
-
-# @receiver(post_save, sender=ExtraParameter)
-# def after_save_product(sender, **kwargs):
-#     instance = kwargs.pop('instance', None)
-#     instance.product.save()
-
-
-# @receiver(post_delete, sender=ExtraParameter)
-# def after_delete_parameter_lab(sender, **kwargs):
-#     instance = kwargs.pop('instance', None)
-#     instance.product.save()
+@receiver(post_delete, sender=CommonOrderItem)
+def after_delete_order_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.order.save()

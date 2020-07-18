@@ -1,4 +1,6 @@
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
 from django.utils import translation, timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
@@ -7,7 +9,7 @@ from django_numerators.models import NumeratorMixin
 from simpellab.core.enums import MaxLength
 from simpellab.core.models import SimpleBaseModel, BaseModel
 from simpellab.modules.products.models import Service, Parameter
-from simpellab.modules.sales.models import SalesOrder, OrderItemBase, ExtraParameterBase
+from simpellab.modules.sales.models import SalesOrder, OrderItem, ExtraParameterBase
 
 _ = translation.ugettext_lazy
 
@@ -83,12 +85,14 @@ class LaboratoriumOrder(SalesOrder):
         verbose_name = _('Laboratorium Order')
         verbose_name_plural = _('Laboratorium Orders')
 
+    def get_order_items(self):
+        """ Get child object order_items """
+        return self.order_items
 
-class LaboratoriumOrderItem(NumeratorMixin, OrderItemBase):
+class LaboratoriumOrderItem(OrderItem):
     class Meta:
         verbose_name = _('Laboratorium Order Item')
         verbose_name_plural = _('Laboratorium Order Items')
-        ordering = ('product',)
         unique_together = ('order', 'product')
 
     doc_prefix = 'ILAB'
@@ -111,7 +115,7 @@ class LaboratoriumOrderItem(NumeratorMixin, OrderItemBase):
         base_price = self.product.get_real_instance().total_price
         extra_parameters = self.get_parameter_prices()
         unit_price = base_price + extra_parameters
-        return base_price
+        return unit_price
 
 
 class LaboratoriumOrderItemExtraParameter(ExtraParameterBase):
@@ -132,3 +136,29 @@ class LaboratoriumOrderItemExtraParameter(ExtraParameterBase):
 
     def get_default_parameters(self):
         return self.order_item.product.lab_parameters
+
+
+@receiver(post_save, sender=LaboratoriumOrderItem)
+def after_save_order_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.order.save()
+
+
+@receiver(post_delete, sender=LaboratoriumOrderItem)
+def after_delete_order_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    instance.order.save()
+
+
+@receiver(post_save, sender=LaboratoriumOrderItemExtraParameter)
+def after_save_product(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    print(instance.order_item)
+    instance.order_item.save()
+
+
+@receiver(post_delete, sender=LaboratoriumOrderItemExtraParameter)
+def after_delete_parameter_lab(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    print(instance.order_item)
+    instance.order_item.save()

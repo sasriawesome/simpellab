@@ -45,6 +45,7 @@ PRODUCTION_APPS = [
     # 'simpellab.api',
     # 'simpellab.modules.todo',
     'simpellab.modules.partners',
+    'simpellab.modules.contracts',
     'simpellab.modules.products',
     'simpellab.modules.sales',
     'simpellab.modules.sales_misc',
