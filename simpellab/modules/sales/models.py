@@ -24,7 +24,7 @@ _ = translation.gettext_lazy
 __all__ = [
     'SalesOrder', # Base Class
     'OrderItem', # Base Class
-    'ExtraParameterBase',
+    'OrderItemParameter',
     'OrderFee',
     'CommonOrder',
     'CommonOrderItem',
@@ -118,13 +118,22 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
                 + ' get_order_items() that '
                 + 'return order_items queryset') % self.__class__.__name__)
 
-    def calc_total_order(self):
+    def calc_total_products(self):
         total_products = self.get_order_items().aggregate(
                 val=models.Sum('total_price')
             )['val'] or 0
+        return total_products
+
+    def calc_total_fees(self):
         total_fees = self.order_fees.aggregate(
                 val=models.Sum('total_fee')
             )['val'] or 0
+        return total_fees
+
+    def calc_total_order(self):
+        total_products = self.calc_total_products()
+        total_fees = self.calc_total_fees()
+        print(total_fees)
         self.total_order = total_fees + total_products
         return self.total_order
 
@@ -140,8 +149,7 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         self.calc_grand_total()
 
     def save(self, *args, **kwargs):
-        if self.__class__.__name__ != 'SalesOrder':
-            self.calc_all_total()
+        self.calc_all_total()
         self.clean()
         super().save(*args, **kwargs)
 
@@ -296,7 +304,7 @@ class CommonOrderItem(OrderItem):
         related_name='sales_orders')
 
 
-class ExtraParameterBase(BaseModel):
+class OrderItemParameter(BaseModel):
     class Meta:
         abstract = True
 
@@ -311,9 +319,6 @@ class ExtraParameterBase(BaseModel):
         default=timezone.now,
         verbose_name=_('Date effective'))
 
-    def get_default_parameters(self):
-        raise NotImplementedError
-
     def __str__(self):
         return str(self.parameter)
 
@@ -323,18 +328,13 @@ class ExtraParameterBase(BaseModel):
             self._ori_parameter = self.parameter
 
     def clean(self):
-        # Prevent duplicate parameter between default and extra
-        default_params = self.get_default_parameters()
-        if len(default_params.filter(parameter=self.parameter)):
-            msg = _("This parameter is default parameter. "
-                    "please select another one.")
-            raise ValidationError({"parameter": msg})
         # Prevent parameter change
-        not_adding = self._state.adding is False
-        is_changed = self._ori_parameter != self.parameter
-        if not_adding and is_changed:
-            msg = _("Parameter can't be changed, please delete instead.")
-            raise ValidationError({"parameter": msg})
+        if getattr(self, 'parameter', None):
+            not_adding = self._state.adding is False
+            is_changed = self._ori_parameter != self.parameter
+            if not_adding and is_changed:
+                msg = _("Parameter can't be changed, please delete instead.")
+                raise ValidationError({"parameter": msg})
         pass
 
     def save(self, *args, **kwargs):
@@ -433,23 +433,25 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
 
 @receiver(post_save, sender=OrderFee)
 def after_save_order_fee(sender, **kwargs):
+    print('save orderfee')
     instance = kwargs.pop('instance', None)
     instance.order.save()
 
 
 @receiver(post_delete, sender=OrderFee)
 def after_delete_order_fee(sender, **kwargs):
+    print('delete orderfee')
     instance = kwargs.pop('instance', None)
-    instance.order.save()
+    instance.order.get_real_instance().save()
 
 
 @receiver(post_save, sender=CommonOrderItem)
-def after_save_order_product(sender, **kwargs):
+def after_save_common_item(sender, **kwargs):
     instance = kwargs.pop('instance', None)
     instance.order.save()
 
 
 @receiver(post_delete, sender=CommonOrderItem)
-def after_delete_order_product(sender, **kwargs):
+def after_delete_common_item(sender, **kwargs):
     instance = kwargs.pop('instance', None)
     instance.order.save()

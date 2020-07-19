@@ -298,7 +298,7 @@ class Product(NumeratorMixin, SimpleBaseModel, PolymorphicModel):
         return self.get_real_instance_class()._meta
 
     def __str__(self):
-        return "{} - {}".format(self.inner_id, self.name)
+        return self.name
 
     def natural_key(self):
         keys = (self.inner_id,)

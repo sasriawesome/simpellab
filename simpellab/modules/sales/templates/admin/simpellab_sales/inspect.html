@@ -24,7 +24,6 @@
   <h1>{{ instance }}</h2>
   <div class="module">
     <table class="model">
-      <h2 class="subhead">{% trans 'Product and Services' %}</h2>
       <thead>
         <tr>
           <th width="80">Tracking ID</th>
@@ -41,13 +40,9 @@
           <td>
             <div><strong>{{ row.name | upper }}</strong></div>
             <p class="small">{{ row.product.inner_id }} {{ row.product.name }}</p>
-            
-          {% if row.product.parameters.all %}
-            {% include 'admin/simpellab_sales/inner_table.html' with items=row.product.parameters.all inner_title='Parameters' %}
-          {% endif %}
 
-          {% if row.extra_parameters.all %}
-            {% include 'admin/simpellab_sales/inner_table.html' with items=row.extra_parameters.all inner_title='Extra Parameters' %}
+          {% if row.parameters.all %}
+            {% include 'admin/simpellab_sales/inner_table.html' with items=row.parameters.all inner_title='Parameters' %}
           {% endif %}
 
           {% if row.product.product_fees.all %}
@@ -65,11 +60,10 @@
       </tbody>
     </table>
     <table class="model">
-      <h2 class="subhead">{% trans 'Order Fees' %}</h2>
       <thead>
         <tr>
           <th>Fee</th>
-          <th width="70" class="text-right">Amount</th>
+          <th width="120" class="text-right">Amount</th>
           <th width="40" class="text-center">Qty</th>
           <th width="70" class="text-right">Total</th>
         </tr>

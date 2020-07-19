@@ -9,7 +9,7 @@ from django_numerators.models import NumeratorMixin
 from simpellab.core.enums import MaxLength
 from simpellab.core.models import SimpleBaseModel, BaseModel
 from simpellab.modules.products.models import Service, Parameter
-from simpellab.modules.sales.models import SalesOrder, OrderItem, ExtraParameterBase
+from simpellab.modules.sales.models import SalesOrder, OrderItem
 
 _ = translation.ugettext_lazy
 

@@ -9,21 +9,14 @@ from simpellab.modules.sales.admin import OrderFeeInline
 from simpellab.modules.sales_inspection.models import *
 
 
-class InspectionServiceParameterInline(admin.TabularInline):
-    extra = 0
-    model = InspectionServiceParameter
-    raw_id_fields = ['parameter']
-    readonly_fields = ['price', 'date_effective']
-
-
 @admin.register(InspectionService)
 class InspectionServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
-    inlines = [ProductFeeInline, InspectionServiceParameterInline]
+    inlines = [ProductFeeInline]
 
 
-class InspectionOrderItemExtraParameterInline(nested_admin.NestedTabularInline):
+class InspectionOrderItemParameterInline(nested_admin.NestedTabularInline):
     extra = 0
-    model = InspectionOrderItemExtraParameter
+    model = InspectionOrderItemParameter
     raw_id_fields = ['parameter']
     readonly_fields = ['price', 'date_effective']
 
@@ -32,7 +25,7 @@ class InspectionOrderItemInline(nested_admin.NestedStackedInline):
     extra = 0
     min_num = 1
     model = InspectionOrderItem
-    inlines = [InspectionOrderItemExtraParameterInline]
+    inlines = [InspectionOrderItemParameterInline]
     readonly_fields = ['unit_price', 'total_price']
     raw_id_fields = ['product']
 

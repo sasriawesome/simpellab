@@ -9,7 +9,7 @@ from django_numerators.models import NumeratorMixin
 from simpellab.core.enums import MaxLength
 from simpellab.core.models import SimpleBaseModel, BaseModel
 from simpellab.modules.products.models import Service, Parameter
-from simpellab.modules.sales.models import SalesOrder, OrderItem, ExtraParameterBase
+from simpellab.modules.sales.models import SalesOrder, OrderItem
 
 _ = translation.ugettext_lazy
 
@@ -57,13 +57,13 @@ class CalibrationOrderItem(OrderItem):
         related_name='orders')
 
 
-@receiver(post_save, sender=CalibrationOrder)
-def after_save_order_product(sender, **kwargs):
+@receiver(post_save, sender=CalibrationOrderItem)
+def after_save_kal_item(sender, **kwargs):
     instance = kwargs.pop('instance', None)
     instance.order.save()
 
 
-@receiver(post_delete, sender=CalibrationOrder)
-def after_delete_order_product(sender, **kwargs):
+@receiver(post_delete, sender=CalibrationOrderItem)
+def after_delete_kal_item(sender, **kwargs):
     instance = kwargs.pop('instance', None)
     instance.order.save()
