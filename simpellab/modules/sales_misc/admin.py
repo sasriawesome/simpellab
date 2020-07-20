@@ -24,6 +24,7 @@ class MiscOrderItemInline(nested_admin.NestedStackedInline):
 
 @admin.register(MiscOrder)
 class MiscAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, MiscOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
 

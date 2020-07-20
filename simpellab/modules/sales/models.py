@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import translation, timezone
@@ -12,7 +12,14 @@ from polymorphic.models import PolymorphicModel
 from simpellab.utils.text import number_to_text_id
 from simpellab.core.enums import MaxLength, Status
 from simpellab.core.models import BaseModel, SimpleBaseModel
-from simpellab.core.mixins import FourStepStatusMixin, StatusMixin, PaidMixin, TrashMixin, CloseMixin
+from simpellab.core.mixins import (
+    FiveStepStatusMixin,
+    StatusMixin, 
+    PaidMixin,
+    TrashMixin,
+    PendingMixin,
+    CloseMixin
+    )
 from simpellab.modules.partners.models import Partner
 from simpellab.modules.products.enums import ProductType
 from simpellab.modules.products.models import Fee, Product
@@ -32,21 +39,7 @@ __all__ = [
 ]
 
 
-class InvoiceStatusMixin(
-        TrashMixin,
-        PaidMixin,
-        CloseMixin,
-        StatusMixin):
-    class Meta:
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        if self._state.adding:
-            self.status = Status.PENDING.value
-        super().save(*args, **kwargs)
-
-
-class SalesOrder(PolymorphicModel, NumeratorMixin, FourStepStatusMixin, SimpleBaseModel):
+class SalesOrder(PolymorphicModel, NumeratorMixin, FiveStepStatusMixin, SimpleBaseModel):
     class Meta:
         verbose_name = _('Sales Order')
         verbose_name_plural = _('Sales Orders')
@@ -370,6 +363,16 @@ class OrderItemParameter(BaseModel):
         super().save(*args, **kwargs)
 
 
+class InvoiceStatusMixin(
+        TrashMixin,
+        PendingMixin,
+        PaidMixin,
+        CloseMixin,
+        StatusMixin):
+    class Meta:
+        abstract = True
+
+
 class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
     class Meta:
         verbose_name = _('Invoice')
@@ -418,26 +421,6 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         max_digits=15,
         decimal_places=2,
         verbose_name=_('Grand Total'))
-    transfer_fee = models.DecimalField(
-        default=0,
-        max_digits=15,
-        decimal_places=2,
-        verbose_name=_('payment fee'))
-    final_total = models.DecimalField(
-        default=0,
-        max_digits=15,
-        decimal_places=2,
-        verbose_name=_('final_total'))
-    downpayment = models.DecimalField(
-        default=0,
-        max_digits=15,
-        decimal_places=2,
-        verbose_name=_('down payment'))
-    repayment = models.DecimalField(
-        default=0,
-        max_digits=15,
-        decimal_places=2,
-        verbose_name=_('repayment'))
     paid = models.DecimalField(
         default=0,
         max_digits=15,
@@ -458,6 +441,34 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         return self.inner_id
 
     @property
+    def pay_ignore_condition(self):
+        return self.is_closed
+
+    @property
+    def pay_valid_condition(self):
+        return not self.is_closed and not self.is_trash
+
+    def post_pay_action(self):
+        order = self.sales_order.get_real_instance()
+        order.approve()
+
+    @transaction.atomic
+    def pay(self, amount):
+        """ Paid pending order, accept payment object """
+        if self.pay_ignore_condition:
+            return
+        if self.pay_valid_condition:
+            self.pre_pay_action()
+            self.status = Status.PAID.value
+            self.paid += amount 
+            self.date_paid = timezone.now()
+            self.save()
+            self.post_pay_action()
+        else:
+            # raise PermissionError(self.get_status_msg('paid'))
+            print('error payment')
+
+    @property
     def is_payment_complete(self):
         return self.grand_total == self.paid
 
@@ -467,9 +478,11 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
 
     @property
     def close_valid_condition(self):
-        return self.is_paid and self.grand_total == self.paid
+        return self.is_paid
 
     def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.status = Status.PENDING.value
         self.billed_to = self.sales_order.customer
         super().save(*args, **kwargs)
 

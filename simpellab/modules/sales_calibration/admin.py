@@ -24,6 +24,7 @@ class CalibrationOrderItemInline(nested_admin.NestedStackedInline):
 
 @admin.register(CalibrationOrder)
 class CalibrationOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, CalibrationOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
     

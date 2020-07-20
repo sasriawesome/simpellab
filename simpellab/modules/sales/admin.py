@@ -22,14 +22,14 @@ class OrderFeeInline(nested_admin.NestedTabularInline):
     extra = 0
     min_num = 0
     model = OrderFee
-    raw_id_fields = ['fee']
+    autocomplete_fields = ['fee']
     readonly_fields = ['amount', 'total_fee']
 
 
 class OrderAdminBase(ModelAdmin):
     menu_icon = 'bookmark'
     list_display = ['customer', 'created_at']
-    search_fields = ['inner_id', 'customer']
+    search_fields = ['inner_id', 'customer__name']
     list_display = [
             'inner_id',
             'customer',
@@ -41,7 +41,7 @@ class OrderAdminBase(ModelAdmin):
         ]
     date_hierarchy = 'created_at'
     list_select_related = ['customer']
-    raw_id_fields = ['customer']
+    autocomplete_fields = ['customer']
     list_filter = [
         ('created_at', DateRangeFilter),
         ('grand_total', RangeNumericFilter),
@@ -122,13 +122,14 @@ class CommonOrderItemInline(nested_admin.NestedTabularInline):
     extra = 0
     min_num = 1
     model = CommonOrderItem
-    raw_id_fields = ['product']
+    autocomplete_fields = ['product']
     fields = ['product', 'name', 'quantity', 'note', 'unit_price', 'total_price']
     readonly_fields = ['unit_price', 'total_price']
 
 
 @admin.register(CommonOrder)
 class CommonOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, CommonOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
 
@@ -136,10 +137,11 @@ class CommonOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
     menu_icon = 'bookmark'
-    list_display = ['billed_to', 'sales_order', 'due_date', 'grand_total', 'paid']
+    search_fields = ['inner_id', 'billed_to__name']
+    list_display = ['inner_id', 'billed_to', 'sales_order', 'due_date', 'grand_total', 'paid']
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return True
 
 
 class SalesModelMenuGroup(ModelMenuGroup):

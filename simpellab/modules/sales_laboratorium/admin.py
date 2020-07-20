@@ -20,7 +20,7 @@ class LaboratoriumOrderItemParameterInline(nested_admin.NestedTabularInline):
     min_num = 1
     model = LaboratoriumOrderItemParameter
     fields = ['parameter', 'note', 'price', 'date_effective']
-    raw_id_fields = ['parameter']
+    autocomplete_fields = ['parameter']
     readonly_fields = ['price', 'date_effective']
 
 
@@ -30,12 +30,13 @@ class LaboratoriumOrderItemInline(nested_admin.NestedStackedInline):
     model = LaboratoriumOrderItem
     inlines = [LaboratoriumOrderItemParameterInline]
     readonly_fields = ['unit_price', 'total_price']
-    raw_id_fields = ['product']
+    autocomplete_fields = ['product']
 
 
 @admin.register(LaboratoriumOrder)
 class LaboratoriumOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
     inlines = [OrderFeeInline, LaboratoriumOrderItemInline]
+    autocomplete_fields = ['customer']
     readonly_fields = ['total_order', 'discount', 'grand_total']
 
 

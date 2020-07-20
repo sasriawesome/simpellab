@@ -29,6 +29,7 @@ class TrainingOrderItemInline(nested_admin.NestedStackedInline):
 
 @admin.register(TrainingOrder)
 class TrainingAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, TrainingOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
     

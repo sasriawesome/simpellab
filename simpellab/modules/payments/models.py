@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import translation, timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -17,6 +17,7 @@ _ = translation.ugettext_lazy
 __all__ = [
     'PaymentMethod',
     'ManualTransferMethod',
+    'CashPaymentMethod',
     'CashFlow',
     'Payment',
     'Receipt',
@@ -74,10 +75,10 @@ class PaymentMethod(PolymorphicModel, BaseModel):
         super().save(*args, **kwargs)
 
 
-class CashOnDelivery(PaymentMethod):
+class CashPaymentMethod(PaymentMethod):
     class Meta:
-        verbose_name = _('Cash on Delivery')
-        verbose_name_plural = _('Manual Transfers')
+        verbose_name = _('Cash Payment')
+        verbose_name_plural = _('Cash Payment')
 
 
 class ManualTransferMethod(PaymentMethod):
@@ -108,6 +109,13 @@ class CashFlow(PolymorphicModel, NumeratorMixin, SimpleBaseModel):
         verbose_name = _('Cash Flow')
         verbose_name_plural = _('Cash Flows')
 
+    DOWN_PAYMENT = 'DP'
+    REPAYMENT = 'RP'
+    PAYMENT_TYPES = (
+        (DOWN_PAYMENT,_('Down Payment')),
+        (REPAYMENT,_('Repayment')),
+    )
+
     partner = models.ForeignKey(
         Partner, 
         on_delete=models.PROTECT
@@ -117,6 +125,14 @@ class CashFlow(PolymorphicModel, NumeratorMixin, SimpleBaseModel):
         choices=PaymentStatus.CHOICES,
         default=PaymentStatus.WAITING,
         verbose_name=_('Status'))
+    ptype = models.CharField(
+        max_length=2,
+        choices=PAYMENT_TYPES,
+        default=None,
+        null=True,
+        blank=True,
+        verbose_name=_('Determine Down Payment or Repayment')
+    )
     payment_method = models.ForeignKey(
         PaymentMethod,
         on_delete=models.PROTECT,
@@ -131,34 +147,133 @@ class CashFlow(PolymorphicModel, NumeratorMixin, SimpleBaseModel):
         max_length=MaxLength.MEDIUM.value,
         null=True, blank=True,
         verbose_name=_('Memo'))
+    
+    date_confirmed = models.DateTimeField(
+        null=True, blank=True, editable=False,
+        verbose_name=_("date confirmed")
+    )
+
+    date_rejected = models.DateTimeField(
+        null=True, blank=True, editable=False,
+        verbose_name=_("date rejected")
+    )
+
+    date_refunded = models.DateTimeField(
+        null=True, blank=True, editable=False,
+        verbose_name=_("date refunded")
+    )
 
     def __str__(self):
         return self.inner_id
 
     @property
-    def is_editable(self):
+    def is_waiting(self):
         return self.status == PaymentStatus.WAITING
+
+    @property
+    def is_editable(self):
+        return self.is_waiting
+
+    @property
+    def is_confirmed(self):
+        """ Check order status is approved """
+        return self.status == PaymentStatus.CONFIRMED
+
+    @property
+    def confirm_ignore_condition(self):
+        return self.is_confirmed
+
+    @property
+    def confirm_valid_condition(self):
+        return self.is_waiting 
+
+    def pre_confirm_action(self):
+        pass
+
+    def post_confirm_action(self):
+        pass
     
-    def calc_amount(self):
-        total = self.payment_items.aggregate(
-            total=models.Sum('amount')
-            )['total']
-        return total or 0
-
-    def get_items(self):
-        print('get payment items')
-
+    @transaction.atomic
     def confirm(self):
-        print('confirming payment')
+        """ Comfirm valid payment """
+        if self.confirm_ignore_condition:
+            return
+        if self.confirm_valid_condition:
+            self.pre_confirm_action()
+            self.status = PaymentStatus.CONFIRMED
+            self.date_confirmed = timezone.now()
+            self.save()
+            self.post_confirm_action()
+        else:
+            raise PermissionError(self.get_status_msg('confirmed'))
     
-    def reject(self):
-        print('rejecting payment')
+    @property
+    def is_rejected(self):
+        """ Check payment status is rejected """
+        return self.status == PaymentStatus.REJECTED
 
+    @property
+    def reject_ignore_condition(self):
+        return self.is_rejected
+
+    @property
+    def reject_valid_condition(self):
+        return self.is_waiting 
+
+    def pre_reject_action(self):
+        pass
+
+    def post_reject_action(self):
+        pass
+    
+    @transaction.atomic
+    def reject(self):
+        """ Comfirm valid payment """
+        if self.reject_ignore_condition:
+            return
+        if self.reject_valid_condition:
+            self.pre_reject_action()
+            self.status = PaymentStatus.REJECTED
+            self.date_rejected = timezone.now()
+            self.save()
+            self.post_reject_action()
+        else:
+            raise PermissionError(self.get_status_msg('rejected'))
+    
+    @property
+    def is_refunded(self):
+        """ Check payment status is refunded """
+        return self.status == PaymentStatus.REFUNDED
+
+    @property
+    def refund_ignore_condition(self):
+        return self.is_refund
+
+    @property
+    def refund_valid_condition(self):
+        return self.is_confirmed 
+
+    def pre_refund_action(self):
+        pass
+
+    def post_refund_action(self):
+        pass
+    
+    @transaction.atomic
     def refund(self):
-        print('make refund')
+        """ Refund confirmed payment """
+        if self.refund_ignore_condition:
+            return
+        if self.refund_valid_condition:
+            self.pre_refund_action()
+            self.status = PaymentStatus.REFUNDED
+            self.date_refunded = timezone.now()
+            self.save()
+            self.post_refund_action()
+        else:
+            raise PermissionError(self.get_status_msg('refunded'))
 
     def save(self, *args, **kwargs):
-        self.amount = self.calc_amount()
         super().save(*args, **kwargs)
 
 
@@ -167,18 +282,6 @@ class Payment(CashFlow):
     class Meta:
         verbose_name = _('Payment')
         verbose_name_plural = _('Payments')
-
-    def get_items(self):
-        print('get payment items')
-
-    def confirm(self):
-        print('confirming payment')
-    
-    def reject(self):
-        print('rejecting payment')
-
-    def refund(self):
-        print('refund payment')
 
 
 class Receipt(CashFlow):
@@ -193,17 +296,5 @@ class Receipt(CashFlow):
         verbose_name=_('Item')
     )
 
-    def __str__(self):
-        return self.inner_id
-    
-    def get_items(self):
-        print('get receipt items')
-
-    def confirm(self):
-        print('confirming receipt')
-    
-    def reject(self):
-        print('rejecting receipt')
-
-    def refund(self):
-        print('refund receipt')
+    def post_confirm_action(self):
+        self.item.pay(self.amount)

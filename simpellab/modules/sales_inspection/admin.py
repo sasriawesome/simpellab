@@ -33,6 +33,7 @@ class InspectionOrderItemInline(nested_admin.NestedStackedInline):
 
 @admin.register(InspectionOrder)
 class InspectionOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, InspectionOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
     

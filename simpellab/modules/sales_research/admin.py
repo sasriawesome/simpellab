@@ -24,6 +24,7 @@ class ResearchOrderItemInline(nested_admin.NestedStackedInline):
 
 @admin.register(ResearchOrder)
 class ResearchAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, ResearchOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
     

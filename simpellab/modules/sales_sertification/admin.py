@@ -25,6 +25,7 @@ class SertificationOrderItemInline(nested_admin.NestedStackedInline):
 
 @admin.register(SertificationOrder)
 class SertificationAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
     inlines = [OrderFeeInline, SertificationOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
     

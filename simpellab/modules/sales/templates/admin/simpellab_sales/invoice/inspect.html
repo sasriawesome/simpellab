@@ -127,7 +127,7 @@
         </tr>
         {% endif %}
         <tr>
-          <td colspan="1" rowspan="3">
+          <td colspan="1" rowspan="4">
               <p>
                 <br>
                 <strong><em>Terbilang:</em></strong><br/>
@@ -143,12 +143,17 @@
           </td>
           <td class="text-right">({{ instance.discount | money }})</td>
         </tr>
-        </tr>
         <tr>
           <td class="text-right" colspan="2">
             <strong>{% trans 'Grand Total' as grand_total %}{{ grand_total | upper }} :</strong>
           </td>
           <td class="text-right">{{ instance.grand_total | money }}</td>
+        </tr>
+        <tr>
+          <td class="text-right" colspan="2">
+            <strong>{% trans 'Paid' as paid %}{{ paid | upper }} :</strong>
+          </td>
+          <td class="text-right">{{ instance.paid | money }}</td>
         </tr>
       </tbody>
     </table>

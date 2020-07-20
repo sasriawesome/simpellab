@@ -16,7 +16,6 @@ class StatusMixin(models.Model):
         choices=Status.CHOICES.value,
         default=Status.DRAFT.value,
         max_length=6,
-        editable=False,
         verbose_name=_('Status'))
 
     @property
@@ -158,8 +157,8 @@ class ValidateMixin(StatusMessage, models.Model):
             self.pre_validate_action()
             self.status = Status.VALID.value
             self.date_validated = timezone.now()
-            self.post_validate_action()
             self.save()
+            self.post_validate_action()
         else:
             raise PermissionError(self.get_status_msg('validated'))
 
@@ -201,8 +200,8 @@ class ApproveMixin(StatusMessage, models.Model):
             self.pre_approve_action()
             self.status = Status.APPROVED.value
             self.date_approved = timezone.now()
-            self.post_approve_action()
             self.save()
+            self.post_approve_action()
         else:
             raise PermissionError(self.get_status_msg('approved'))
 
@@ -244,8 +243,8 @@ class RejectMixin(StatusMessage, models.Model):
             self.pre_reject_action()
             self.status = Status.REJECTED.value
             self.date_rejected = timezone.now()
-            self.post_reject_action()
             self.save()
+            self.post_reject_action()
         else:
             raise PermissionError(self.get_status_msg('rejected'))
 
@@ -287,8 +286,8 @@ class CompleteMixin(StatusMessage, models.Model):
             self.pre_complete_action()
             self.status = Status.COMPLETE.value
             self.date_completed = timezone.now()
-            self.post_complete_action()
             self.save()
+            self.post_complete_action()
         else:
             raise PermissionError(self.get_status_msg('completed'))
 
@@ -330,8 +329,8 @@ class ProcessMixin(StatusMessage, models.Model):
             self.pre_process_action()
             self.status = Status.PROCESSED.value
             self.date_processed = timezone.now()
-            self.post_process_action()
             self.save()
+            self.post_process_action()
         else:
             raise PermissionError(self.get_status_msg('processed'))
 
@@ -346,30 +345,34 @@ class PaidMixin(StatusMessage, models.Model):
     )
 
     @property
-    def paid_ignore_condition(self):
+    def is_paid(self):
+        return self.status == Status.REJECTED.value
+
+    @property
+    def pay_ignore_condition(self):
         raise NotImplementedError
 
     @property
-    def paid_valid_condition(self):
+    def pay_valid_condition(self):
         raise NotImplementedError
 
-    def pre_paid_action(self):
+    def pre_pay_action(self):
         pass
 
-    def post_paid_action(self):
+    def post_pay_action(self):
         pass
 
     @transaction.atomic
-    def paid(self):
+    def pay(self):
         """ Paid pending order """
-        if self.paid_ignore_condition:
+        if self.pay_ignore_condition:
             return
-        if self.paid_valid_condition:
-            self.pre_paid_action()
+        if self.pay_valid_condition:
+            self.pre_pay_action()
             self.status = Status.PAID.value
             self.date_paid = timezone.now()
-            self.post_paid_action()
             self.save()
+            self.post_pay_action()
         else:
             raise PermissionError(self.get_status_msg('paid'))
 
@@ -410,8 +413,8 @@ class CloseMixin(StatusMessage, models.Model):
             self.pre_close_action()
             self.status = Status.CLOSED.value
             self.date_closed = timezone.now()
-            self.post_close_action()
             self.save()
+            self.post_close_action()
         else:
             raise PermissionError(self.get_status_msg('closed'))
 

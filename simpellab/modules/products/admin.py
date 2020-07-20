@@ -12,12 +12,14 @@ from .filters import ProductChildFilter
 @admin.register(Tag)
 class TagAdmin(ModelAdmin):
     inspect_enabled = False
+    search_fields = ['name']
     menu_icon = 'tag'
 
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
     inspect_enabled = False
+    search_fields = ['name']
     menu_icon = 'tag'
 
 
@@ -31,15 +33,17 @@ class UnitOfMeasureAdmin(ModelAdmin):
 @admin.register(Parameter)
 class ParameterAdmin(ModelAdmin):
     inspect_enabled = False
+    search_fields = ['name']
     list_display = ['name', 'ptype', 'price']
-    raw_id_fields = ['unit_of_measure']
+    autocomplete_fields = ['unit_of_measure']
     menu_icon = 'filter'
 
 @admin.register(Fee)
 class FeeAdmin(ModelAdmin):
     inspect_enabled = False
+    search_fields = ['name']
     list_display = ['name', 'description', 'price']
-    raw_id_fields = ['unit_of_measure']
+    autocomplete_fields = ['unit_of_measure']
     menu_icon = 'tag'
 
 class ProductChildAdmin(PolymorphicChildModelAdmin, ModelAdmin):
@@ -101,7 +105,6 @@ class ProductMixin(ModelAdmin):
     raw_id_fields = ['category', 'unit_of_measure']
     readonly_fields = ['fee', 'total_price']
     inlines = [SpecificationInline, ProductFeeInline]
-
 
 @admin.register(Asset)
 class AssetAdmin(ProductMixin, ProductChildAdmin, ModelAdmin):
