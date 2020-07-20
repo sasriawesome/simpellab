@@ -15,10 +15,9 @@
       <tr>
         <td width="150"><strong>{% trans 'Created At' %}</strong></td>
         <td>{{ instance.created_at }}</td>
-      </tr>
-      <tr>
-        <td width="150"><strong>{{ instance.sales_order.opts.verbose_name }}</strong></td>
-        <td>{{ instance.sales_order.inner_id }} </td>
+        <td rowspan="3">
+          <img class="qrcode qrcode_small" src="{{ instance.qrcode.url }}" alt="qrcode img">
+        </td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Billed To' %}</strong></td>
@@ -30,17 +29,20 @@
         </td>
       </tr>
       <tr>
-        <td width="150"><strong>{% trans 'Contract' %}</strong></td>
-        <td>{{ instance.sales_order.contract }} {% if instance.sales_order.contract %}{{ instance.sales_order.contract_number }}{% endif %}</td>
+        <td width="150"><strong>{{ instance.sales_order.opts.verbose_name }}</strong></td>
+        <td>{{ instance.sales_order.inner_id }} </td>
       </tr>
+      <tr>
+        <td width="150"><strong>{% trans 'Contract' %}</strong></td>
+        <td colspan="2">{{ instance.sales_order.contract }} {% if instance.sales_order.contract %}{{ instance.sales_order.contract_number }}{% endif %}</td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Status' %}</strong></td>
-        <td>{{ instance.get_status_display }}</td>
+        <td colspan="2">{{ instance.get_status_display }}</td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Note' %}</strong></td>
-        <td>{% firstof instance.note '-' %}</td>
+        <td colspan="2">{% firstof instance.note '-' %}</td>
       </tr>
     </table>
     <br/>
@@ -127,7 +129,7 @@
         </tr>
         {% endif %}
         <tr>
-          <td colspan="1" rowspan="4">
+          <td colspan="1" rowspan="5">
               <p>
                 <br>
                 <strong><em>Terbilang:</em></strong><br/>
@@ -139,7 +141,7 @@
         </tr>
         <tr>
           <td class="text-right" colspan="2">
-            <strong>{% trans 'Discount' as discount %}{{ discount | upper }} {{ instance.discount_percentage }} % :</strong>
+            <strong>{% trans 'Discount' as discount %}{{ discount | upper }} {% if instance.discount_percentage %}{{ instance.discount_percentage }} % {% endif %}:</strong>
           </td>
           <td class="text-right">({{ instance.discount | money }})</td>
         </tr>
@@ -154,6 +156,12 @@
             <strong>{% trans 'Paid' as paid %}{{ paid | upper }} :</strong>
           </td>
           <td class="text-right">{{ instance.paid | money }}</td>
+        </tr>
+        <tr>
+          <td class="text-right" colspan="2">
+            <strong>{% trans 'Refund' as refund %}{{ refund | upper }} :</strong>
+          </td>
+          <td class="text-right">{{ instance.refund | money }}</td>
         </tr>
       </tbody>
     </table>

@@ -4,7 +4,7 @@ from django.utils.functional import cached_property
 from django.conf import settings
 
 from django_numerators.models import NumeratorMixin
-from simpellab.core.models import SimpleBaseModel
+from simpellab.core.models import SimpleBaseModel, BaseModel
 from simpellab.core.managers import BaseManager
 from simpellab.auth.models import AddressAbstract, ContactAbstract
 
@@ -39,6 +39,13 @@ class Partner(NumeratorMixin, SimpleBaseModel):
         default=False, verbose_name=_("Supplier"))
     is_active = models.BooleanField(
         default=True, verbose_name=_("Active"))
+    balance = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        editable=True,
+        verbose_name=_('Balance')
+    )
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         null=True, blank=True,
@@ -164,3 +171,64 @@ class ContactPerson(SimpleBaseModel):
 
     def __str__(self):
         return self.name
+
+
+class BalanceMutation(BaseModel):
+    class Meta:
+        verbose_name = _('Balance Mutation')
+        verbose_name = _('Balance Mutations')
+    
+    IN = 'IN'
+    OUT = 'OUT'
+
+    FLOWS =(
+        (IN, _('In')),
+        (OUT, _('Out')),
+    )
+
+    partner = models.ForeignKey(
+        Partner,
+        on_delete=models.CASCADE,
+        verbose_name=_('Partner')
+        )
+    flow = models.CharField(
+        max_length=3,
+        choices=FLOWS,
+        default=IN,
+        verbose_name=_('Cash flow')
+    )
+    reference = models.CharField(
+        max_length=125,
+        verbose_name=_('reference')
+    )
+    note = models.TextField(
+        max_length=225,
+        null=True, blank=True,
+        verbose_name=_('Note')
+    )
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        editable=True,
+        verbose_name=_('Amount')
+    )
+
+    def __str__(self):
+        return self.partner.name
+
+    def add_balance(self):
+        self.partner.balance += self.amount
+        self.partner.save()
+
+    def drop_balance(self):
+        self.partner.balance -= self.amount
+        self.partner.save()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        # update partner balance
+        if self.flow == self.IN:
+            self.add_balance()
+        else:
+            self.drop_balance()

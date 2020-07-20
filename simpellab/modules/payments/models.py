@@ -6,7 +6,7 @@ from django_numerators.models import NumeratorMixin
 from polymorphic.models import PolymorphicModel
 from simpellab.core.models import BaseModel, SimpleBaseModel
 from simpellab.core.enums import MaxLength
-from simpellab.modules.partners.models import Partner
+from simpellab.modules.partners.models import Partner, BalanceMutation
 from simpellab.modules.sales.models import Invoice
 from simpellab.modules.payments.enums import PaymentStatus
 
@@ -26,8 +26,8 @@ __all__ = [
 
 class PaymentMethod(PolymorphicModel, BaseModel):
     class Meta:
-        verbose_name = _('Payment Method')
-        verbose_name_plural = _('Payment Methods')
+        verbose_name = _('Method')
+        verbose_name_plural = _('Methods')
     
     PERCENT = 'PERCENT'
     NOMINAL = 'NOMINAL'
@@ -128,10 +128,9 @@ class CashFlow(PolymorphicModel, NumeratorMixin, SimpleBaseModel):
     ptype = models.CharField(
         max_length=2,
         choices=PAYMENT_TYPES,
-        default=None,
-        null=True,
-        blank=True,
-        verbose_name=_('Determine Down Payment or Repayment')
+        default=None, null=True, blank=True,
+        verbose_name=_('Payment Type'),
+        help_text=_('Determine Down Payment or Repayment')
     )
     payment_method = models.ForeignKey(
         PaymentMethod,
@@ -239,39 +238,6 @@ class CashFlow(PolymorphicModel, NumeratorMixin, SimpleBaseModel):
             self.post_reject_action()
         else:
             raise PermissionError(self.get_status_msg('rejected'))
-    
-    @property
-    def is_refunded(self):
-        """ Check payment status is refunded """
-        return self.status == PaymentStatus.REFUNDED
-
-    @property
-    def refund_ignore_condition(self):
-        return self.is_refund
-
-    @property
-    def refund_valid_condition(self):
-        return self.is_confirmed 
-
-    def pre_refund_action(self):
-        pass
-
-    def post_refund_action(self):
-        pass
-    
-    @transaction.atomic
-    def refund(self):
-        """ Refund confirmed payment """
-        if self.refund_ignore_condition:
-            return
-        if self.refund_valid_condition:
-            self.pre_refund_action()
-            self.status = PaymentStatus.REFUNDED
-            self.date_refunded = timezone.now()
-            self.save()
-            self.post_refund_action()
-        else:
-            raise PermissionError(self.get_status_msg('refunded'))
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -279,6 +245,13 @@ class CashFlow(PolymorphicModel, NumeratorMixin, SimpleBaseModel):
 
 class Payment(CashFlow):
     """ Send cash to partner """
+    class Meta:
+        verbose_name = _('Payment')
+        verbose_name_plural = _('Payments')
+
+
+class Refund(CashFlow):
+    """ Refund cash to partner """
     class Meta:
         verbose_name = _('Payment')
         verbose_name_plural = _('Payments')
@@ -296,5 +269,27 @@ class Receipt(CashFlow):
         verbose_name=_('Item')
     )
 
+    def pre_confirm_action(self):
+        # Use this if you want to prevent confirmation 
+        # if receipt amount greater than invoice receivable
+        # if self.amount > self.item.receivable:
+        #     raise Exception({
+        #           'error':_('Receipt amount greater than Invoice receivable amount')
+        #         })
+        pass
+
     def post_confirm_action(self):
-        self.item.pay(self.amount)
+        if self.amount > self.item.receivable:
+            # transfer refundable to partner balance
+            refundable_value = self.amount - self.item.receivable
+            mutation = BalanceMutation(
+                partner=self.partner,
+                flow=BalanceMutation.IN,
+                amount = refundable_value,
+                reference=self.inner_id,
+                note='Invoice #%s refund' % self.item.inner_id,
+            )
+            mutation.save()
+            self.item.pay(self.item.receivable, refund=refundable_value)
+        else:
+            self.item.pay(self.amount)

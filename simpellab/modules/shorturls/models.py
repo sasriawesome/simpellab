@@ -4,6 +4,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import reverse
 from simpellab.core.models import BaseModel
 from simpellab.core.enums import MaxLength
+from django.conf import settings
+
+
+BASE_URL = getattr(settings, 'BASE_URL', 'http://localhost:8000')
 
 
 class ShortUrl(BaseModel):
@@ -43,12 +47,15 @@ class ShortUrl(BaseModel):
     def get_absolute_url(self):
         return reverse('goto_shorturl', args=(self.hashed_url,))
 
+    def get_absolute_url_with_hostname(self):
+        return ''.join([BASE_URL, self.get_absolute_url()])
+
     def click(self):
         self.clicked += 1
         self.save()
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if self._state.adding:
             self.hashed_url = md5(self.original_url.encode()).hexdigest()[:10]
 
         return super().save(*args, **kwargs)

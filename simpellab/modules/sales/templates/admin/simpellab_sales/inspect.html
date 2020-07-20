@@ -12,10 +12,11 @@
       <tr>
         <td width="150"><strong>{% trans 'Created At' %}</strong></td>
         <td>{{ instance.created_at }}</td>
-      </tr>
-      <tr>
-        <td width="150"><strong>{% trans 'Order Type' %}</strong></td>
-        <td>{{ instance.opts.verbose_name }}</td>
+        <td rowspan="3">
+          {% if instance.qrcode.url %}
+            <img class="qrcode qrcode_small" src="{{ instance.qrcode.url }}" alt="qrcode img">
+          {% endif %}
+        </td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Customer' %}</strong></td>
@@ -27,17 +28,20 @@
         </td>
       </tr>
       <tr>
-        <td width="150"><strong>{% trans 'Contract' %}</strong></td>
-        <td>{{ instance.contract }} {% if instance.contract %}{{ instance.contract_number }}{% endif %}</td>
+        <td width="150"><strong>{% trans 'Order Type' %}</strong></td>
+        <td>{{ instance.opts.verbose_name }}</td>
       </tr>
+      <tr>
+        <td width="150"><strong>{% trans 'Contract' %}</strong></td>
+        <td colspan="2">{{ instance.contract }} {% if instance.contract %}{{ instance.contract_number }}{% endif %}</td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Status' %}</strong></td>
-        <td>{{ instance.get_status_display }}</td>
+        <td colspan="2">{{ instance.get_status_display }}</td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Note' %}</strong></td>
-        <td>{% firstof instance.note '-' %}</td>
+        <td colspan="2">{% firstof instance.note '-' %}</td>
       </tr>
     </table>
     <br/>
@@ -139,7 +143,6 @@
             <strong>{% trans 'Discount' as discount %}{{ discount | upper }} {{ instance.discount_percentage }} % :</strong>
           </td>
           <td class="text-right">({{ instance.discount | money }})</td>
-        </tr>
         </tr>
         <tr>
           <td class="text-right" colspan="2">

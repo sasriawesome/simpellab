@@ -2,8 +2,10 @@ from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import translation, timezone
+from django.shortcuts import reverse
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.conf import settings
 
 from django_numerators.models import NumeratorMixin
 from django_qrcodes.models import QRCodeMixin
@@ -24,9 +26,13 @@ from simpellab.modules.partners.models import Partner
 from simpellab.modules.products.enums import ProductType
 from simpellab.modules.products.models import Fee, Product
 from simpellab.modules.sales.managers import SalesOrderManager
-
+from simpellab.modules.shorturls.models import ShortUrl
 
 _ = translation.gettext_lazy
+
+
+BASE_URL = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+
 
 __all__ = [
     'SalesOrder', # Base Class
@@ -39,7 +45,7 @@ __all__ = [
 ]
 
 
-class SalesOrder(PolymorphicModel, NumeratorMixin, FiveStepStatusMixin, SimpleBaseModel):
+class SalesOrder(PolymorphicModel, QRCodeMixin, NumeratorMixin, FiveStepStatusMixin, SimpleBaseModel):
     class Meta:
         verbose_name = _('Sales Order')
         verbose_name_plural = _('Sales Orders')
@@ -106,6 +112,30 @@ class SalesOrder(PolymorphicModel, NumeratorMixin, FiveStepStatusMixin, SimpleBa
     @property
     def grand_total_text(self):
         return number_to_text_id(self.grand_total)
+
+    def get_qrcode_data(self): 
+        return self.get_short_url()
+
+    def get_public_url(self):
+        return reverse('sales_salesorder_inspect_public', args=(self.id,))
+
+    def get_public_url_with_hostname(self):
+        return ''.join([BASE_URL, self.get_public_url()])
+
+    def get_short_url(self):
+        try:
+            short_url = ShortUrl.objects.get(
+                original_url=self.get_public_url_with_hostname()
+            )
+        except ShortUrl.DoesNotExist:
+            short_url = ShortUrl(
+                name='Sales Order %s' % self.customer.name,
+                original_url= self.get_public_url_with_hostname(),
+                ads=False,
+                public=False
+            )
+            short_url.save()
+        return short_url.get_absolute_url_with_hostname()
 
     def get_order_items(self):
         """ Get child object order_items """
@@ -367,11 +397,15 @@ class InvoiceStatusMixin(
         TrashMixin,
         PendingMixin,
         PaidMixin,
-        CloseMixin,
         StatusMixin):
     class Meta:
         abstract = True
 
+    date_closed = models.DateTimeField(
+        default=None,
+        null=True, blank=True,
+        verbose_name=_('Date closed')
+    )
 
 class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
     class Meta:
@@ -441,6 +475,10 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         return self.inner_id
 
     @property
+    def is_closed(self):
+        return self.status == Status.CLOSED.value
+
+    @property
     def pay_ignore_condition(self):
         return self.is_closed
 
@@ -453,38 +491,68 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         order.approve()
 
     @transaction.atomic
-    def pay(self, amount):
+    def pay(self, amount, refund=0):
         """ Paid pending order, accept payment object """
         if self.pay_ignore_condition:
             return
         if self.pay_valid_condition:
             self.pre_pay_action()
             self.status = Status.PAID.value
+            self.refund = refund
             self.paid += amount 
             self.date_paid = timezone.now()
             self.save()
             self.post_pay_action()
         else:
-            # raise PermissionError(self.get_status_msg('paid'))
-            print('error payment')
+            raise PermissionError(self.get_status_msg('paid'))
+
+    def calc_refund_receivable(self):
+        margin = self.grand_total - self.paid
+        if margin >= 0:
+            self.receivable = margin
+        else:
+            self.receivable = 0
+
+    def calc_receivable(self):
+        pass
 
     @property
     def is_payment_complete(self):
         return self.grand_total == self.paid
 
-    @property
-    def close_ignore_condition(self):
-        return self.is_closed
-
-    @property
-    def close_valid_condition(self):
-        return self.is_paid
-
     def save(self, *args, **kwargs):
         if self._state.adding:
             self.status = Status.PENDING.value
+        if self.is_payment_complete:
+            self.status = Status.CLOSED.value
+            self.date_closed = timezone.now
         self.billed_to = self.sales_order.customer
+        self.calc_refund_receivable()
         super().save(*args, **kwargs)
+
+    def get_qrcode_data(self): 
+        return self.get_short_url()
+
+    def get_public_url(self):
+        return reverse('sales_invoice_inspect_public', args=(self.id,))
+
+    def get_public_url_with_hostname(self):
+        return ''.join([BASE_URL, self.get_public_url()])
+
+    def get_short_url(self):
+        try:
+            short_url = ShortUrl.objects.get(
+                original_url=self.get_public_url_with_hostname()
+            )
+        except ShortUrl.DoesNotExist:
+            short_url = ShortUrl(
+                name='Invoice %s' % self.billed_to.name,
+                original_url= self.get_public_url_with_hostname(),
+                ads=False,
+                public=False
+            )
+            short_url.save()
+        return short_url.get_absolute_url_with_hostname()
 
 
 @receiver(post_save, sender=OrderFee)

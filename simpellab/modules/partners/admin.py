@@ -6,7 +6,8 @@ from simpellab.modules.partners.models import (
     Partner,
     PartnerContact,
     PartnerAddress,
-    ContactPerson
+    ContactPerson,
+    BalanceMutation
 )
 
 _ = translation.gettext_lazy
@@ -40,5 +41,10 @@ class PartnerAddressInline(admin.StackedInline):
 class PartnerAdmin(ModelAdmin):
     menu_icon = 'account'
     search_fields = ['owner__company__name']
-    list_display = ['inner_id', 'name', 'is_customer', 'is_supplier', 'is_active', 'created_at']
+    list_display = ['inner_id', 'name', 'is_customer', 'is_supplier', 'balance']
     inlines = [PartnerContactInline, PartnerAddressInline, ContactPersonInline]
+
+
+@admin.register(BalanceMutation)
+class BalanceMutationAdmin(ModelAdmin):
+    list_display = ['created_at', 'partner', 'reference', 'note','flow', 'amount']
