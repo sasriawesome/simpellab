@@ -12,7 +12,7 @@ from polymorphic.models import PolymorphicModel
 from simpellab.utils.text import number_to_text_id
 from simpellab.core.enums import MaxLength, Status
 from simpellab.core.models import BaseModel, SimpleBaseModel
-from simpellab.core.mixins import ThreeStepStatusMixin, StatusMixin, PaidMixin, TrashMixin, CloseMixin
+from simpellab.core.mixins import FourStepStatusMixin, StatusMixin, PaidMixin, TrashMixin, CloseMixin
 from simpellab.modules.partners.models import Partner
 from simpellab.modules.products.enums import ProductType
 from simpellab.modules.products.models import Fee, Product
@@ -46,7 +46,7 @@ class InvoiceStatusMixin(
         super().save(*args, **kwargs)
 
 
-class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleBaseModel):
+class SalesOrder(PolymorphicModel, NumeratorMixin, FourStepStatusMixin, SimpleBaseModel):
     class Meta:
         verbose_name = _('Sales Order')
         verbose_name_plural = _('Sales Orders')
@@ -60,6 +60,8 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
     doc_prefix = 'SPJ'
     parent_prefix = True
     parent_model = 'simpellab_sales.SalesOrder'
+
+    objects = SalesOrderManager()
 
     contract = models.BooleanField(
         default=False,
@@ -78,10 +80,6 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         max_length=MaxLength.LONG.value,
         null=True, blank=True,
         verbose_name=_('Customer PO'))
-    note = models.CharField(
-        max_length=MaxLength.LONG.value,
-        null=True, blank=True,
-        verbose_name=_("Note"))
     total_order = models.DecimalField(
         default=0, max_digits=15,
         decimal_places=2,
@@ -103,6 +101,11 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         max_digits=15,
         decimal_places=2,
         verbose_name=_('Grand Total'))
+        
+    note = models.TextField(
+        max_length=MaxLength.LONG.value,
+        null=True, blank=True,
+        verbose_name=_("Note"))
 
     def __str__(self):
         return "{}".format(self.inner_id)
@@ -133,7 +136,6 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
     def calc_total_order(self):
         total_products = self.calc_total_products()
         total_fees = self.calc_total_fees()
-        print(total_fees)
         self.total_order = total_fees + total_products
         return self.total_order
 
@@ -152,6 +154,24 @@ class SalesOrder(NumeratorMixin, ThreeStepStatusMixin, PolymorphicModel, SimpleB
         self.calc_all_total()
         self.clean()
         super().save(*args, **kwargs)
+
+
+    # Status update action
+
+    def post_validate_action(self):
+        """ Create Invoice after sales order validated """
+        invoice = Invoice(
+            sales_order=self,
+            sales_order_type=self.opts.model_name,
+            billed_to=self.customer,
+            due_date=self.created_at,
+            description=self.note,
+            total_order=self.total_order,
+            discount_percentage=self.discount_percentage,
+            discount=self.discount,
+            grand_total=self.grand_total
+        )
+        invoice.save()
 
 
 class OrderFee(BaseModel):
@@ -310,6 +330,10 @@ class OrderItemParameter(BaseModel):
 
     _ori_parameter = None
 
+    note = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Note'))
     price = models.DecimalField(
         default=0,
         max_digits=15,
@@ -351,22 +375,28 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         verbose_name = _('Invoice')
         verbose_name_plural = _('Invoices')
 
+    doc_prefix = 'INV'
+
     sales_order = models.OneToOneField(
         SalesOrder,
         on_delete=models.PROTECT,
         verbose_name=_('sales order'))
+    sales_order_type = models.CharField(
+        null=True, blank=True,
+        max_length=MaxLength.MEDIUM.value,
+        verbose_name=_('Sales order type'))
     billed_to = models.ForeignKey(
         Partner, null=True, blank=False,
-        editable=False,
         limit_choices_to={'is_customer':True},
         on_delete=models.PROTECT, 
-        verbose_name=_('Customer')
-        )
+        verbose_name=_('Customer'))
     due_date = models.DateTimeField(
-        default=timezone.now, verbose_name=_('Due date'))
+        default=timezone.now,
+        verbose_name=_('Due date'))
     description = models.TextField(
         max_length=MaxLength.TEXT.value,
-        blank=True, null=True, verbose_name=_('Description'))
+        blank=True, null=True, 
+        verbose_name=_('Description'))
     total_order = models.DecimalField(
         default=0, max_digits=15,
         decimal_places=2,
@@ -388,6 +418,16 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         max_digits=15,
         decimal_places=2,
         verbose_name=_('Grand Total'))
+    transfer_fee = models.DecimalField(
+        default=0,
+        max_digits=15,
+        decimal_places=2,
+        verbose_name=_('payment fee'))
+    final_total = models.DecimalField(
+        default=0,
+        max_digits=15,
+        decimal_places=2,
+        verbose_name=_('final_total'))
     downpayment = models.DecimalField(
         default=0,
         max_digits=15,
@@ -414,6 +454,9 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
         decimal_places=2,
         verbose_name=_('refund'))
 
+    def __str__(self):
+        return self.inner_id
+
     @property
     def is_payment_complete(self):
         return self.grand_total == self.paid
@@ -433,14 +476,12 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
 
 @receiver(post_save, sender=OrderFee)
 def after_save_order_fee(sender, **kwargs):
-    print('save orderfee')
     instance = kwargs.pop('instance', None)
     instance.order.save()
 
 
 @receiver(post_delete, sender=OrderFee)
 def after_delete_order_fee(sender, **kwargs):
-    print('delete orderfee')
     instance = kwargs.pop('instance', None)
     instance.order.get_real_instance().save()
 

@@ -45,8 +45,10 @@ PRODUCTION_APPS = [
     # 'simpellab.api',
     # 'simpellab.modules.todo',
     'simpellab.modules.partners',
+    'simpellab.modules.shorturls',
     'simpellab.modules.contracts',
     'simpellab.modules.products',
+    'simpellab.modules.payments',
     'simpellab.modules.sales',
     'simpellab.modules.sales_misc',
     'simpellab.modules.sales_laboratorium',
@@ -125,6 +127,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 # =============================================================================
 # Database

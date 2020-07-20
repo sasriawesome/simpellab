@@ -132,10 +132,14 @@ class CommonOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin
     inlines = [OrderFeeInline, CommonOrderItemInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
 
+
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
     menu_icon = 'bookmark'
     list_display = ['billed_to', 'sales_order', 'due_date', 'grand_total', 'paid']
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class SalesModelMenuGroup(ModelMenuGroup):

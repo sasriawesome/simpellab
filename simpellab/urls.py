@@ -9,9 +9,10 @@ from django.contrib import admin
 from simpellab.admin.sites import admin_site
 
 urlpatterns = [
-    path('_nested_admin/', include('nested_admin.urls')),
+    path('go/', include('simpellab.modules.shorturls.urls')),
     # path('api/', include('simpellab.api.urls')),
-    path('admin/', admin.site.urls)
+    path('admin/', admin.site.urls),
+    path('_nested_admin/', include('nested_admin.urls'))
 ]
 
 if settings.DEBUG:

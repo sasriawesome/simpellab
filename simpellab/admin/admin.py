@@ -165,7 +165,7 @@ class ModelAdmin(NumericFilterModelAdmin, ModelAdminMenuMixin, admin.ModelAdmin)
             list_display.append('edit_link')
         if self.has_delete_permission(request):
             list_display.append('delete_link')
-        if self.has_view_or_change_permission(request):
+        if self.inspect_enabled and self.has_view_or_change_permission(request):
             list_display.append('view_link')
         return list_display
 

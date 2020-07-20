@@ -11,27 +11,34 @@ from .filters import ProductChildFilter
 
 @admin.register(Tag)
 class TagAdmin(ModelAdmin):
+    inspect_enabled = False
     menu_icon = 'tag'
 
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
+    inspect_enabled = False
     menu_icon = 'tag'
 
 
 @admin.register(UnitOfMeasure)
 class UnitOfMeasureAdmin(ModelAdmin):
+    inspect_enabled = False
     search_fields = ['name']
     menu_icon = 'tag'
 
 
 @admin.register(Parameter)
 class ParameterAdmin(ModelAdmin):
+    inspect_enabled = False
+    list_display = ['name', 'ptype', 'price']
     raw_id_fields = ['unit_of_measure']
     menu_icon = 'filter'
 
 @admin.register(Fee)
 class FeeAdmin(ModelAdmin):
+    inspect_enabled = False
+    list_display = ['name', 'description', 'price']
     raw_id_fields = ['unit_of_measure']
     menu_icon = 'tag'
 

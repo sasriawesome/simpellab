@@ -19,6 +19,7 @@ class LaboratoriumOrderItemParameterInline(nested_admin.NestedTabularInline):
     extra = 0
     min_num = 1
     model = LaboratoriumOrderItemParameter
+    fields = ['parameter', 'note', 'price', 'date_effective']
     raw_id_fields = ['parameter']
     readonly_fields = ['price', 'date_effective']
 

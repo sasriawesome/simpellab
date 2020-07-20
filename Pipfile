@@ -30,6 +30,7 @@ django-numerators = "*"
 django-qrcodes = "*"
 django-personals = "*"
 django-nested-admin = "*"
+django-payments = "*"
 
 [requires]
 python_version = "3.8"

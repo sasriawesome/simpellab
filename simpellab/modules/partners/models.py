@@ -48,7 +48,7 @@ class Partner(NumeratorMixin, SimpleBaseModel):
 
     @cached_property
     def full_address(self):
-        address = self.get_primary_address
+        address = self.primary_address
         if address:
             line1 = []
             if address.street1:
@@ -74,10 +74,10 @@ class Partner(NumeratorMixin, SimpleBaseModel):
 
     @cached_property
     def full_contactinfo(self):
-        contact = self.get_contact_info
+        contact = self.contact
         text = []
         text2 = []
-        if contact.phone1:
+        if contact.phone:
             text.append('Phone: %s' % contact.phone)
         if contact.fax:
             text.append('Fax: %s' % contact.fax)
@@ -93,8 +93,8 @@ class Partner(NumeratorMixin, SimpleBaseModel):
         return self.name
 
     @cached_property
-    def get_primary_address(self):
-        address_set = getattr(self, 'partneraddress_set', None)
+    def primary_address(self):
+        address_set = getattr(self, 'addresses', None)
         primaries = address_set.filter(is_primary=True)
         return None if not primaries else primaries[0]
 
@@ -134,6 +134,7 @@ class PartnerAddress(AddressAbstract):
     @cached_property
     def verbose_name(self):
         return "Address %s" % str(self.partner)
+
 
 class ContactPerson(SimpleBaseModel):
     class Meta:

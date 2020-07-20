@@ -1,0 +1,177 @@
+{% extends 'admin/inspect.html' %}
+
+{% load i18n static admin_urls admin_modify %}
+{% load simpellab_admin_tags simpellab_core_tags %}
+
+
+{% block content %}
+<div id="content-main">
+  <p class="small">
+    <a href="{% url opts|admin_urlname:'changelist' %}">&lsaquo; {% trans 'Back to' %} {{ opts.verbose_name_plural|capfirst }}</a>
+  </p>
+  <h1>{{ instance }}</h2>
+  <div class="module">
+    <table>
+      <tr>
+        <td width="150"><strong>{% trans 'Created At' %}</strong></td>
+        <td>{{ instance.created_at }}</td>
+      </tr>
+      <tr>
+        <td width="150"><strong>{{ instance.sales_order.opts.verbose_name }}</strong></td>
+        <td>{{ instance.sales_order.inner_id }} </td>
+      </tr>
+      <tr>
+        <td width="150"><strong>{% trans 'Billed To' %}</strong></td>
+        <td>
+          <p><strong>{{ instance.billed_to.inner_id }}, {{ instance.billed_to }}</strong></p>
+          <p>{{ instance.billed_to.primary_address.fulladdress }}</p>
+          <p>{{ instance.billed_to.full_contactinfo.0 }}</p>
+          <p>{{ instance.billed_to.full_contactinfo.1 }}</p>
+        </td>
+      </tr>
+      <tr>
+        <td width="150"><strong>{% trans 'Contract' %}</strong></td>
+        <td>{{ instance.sales_order.contract }} {% if instance.sales_order.contract %}{{ instance.sales_order.contract_number }}{% endif %}</td>
+      </tr>
+      </tr>
+      <tr>
+        <td width="150"><strong>{% trans 'Status' %}</strong></td>
+        <td>{{ instance.get_status_display }}</td>
+      </tr>
+      <tr>
+        <td width="150"><strong>{% trans 'Note' %}</strong></td>
+        <td>{% firstof instance.note '-' %}</td>
+      </tr>
+    </table>
+    <br/>
+    <table class="model">
+      <thead>
+        <tr>
+          <th width="80">Tracking ID</th>
+          <th>Name</th>
+          <th width="70" class="text-right">Unit Price</th>
+          <th width="40" class="text-center">Qty</th>
+          <th width="70" class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if instance.sales_order.order_items.count %}
+          {% for row in instance.sales_order.order_items.all|dictsort:"created_at" %}
+          <tr>
+            <td>{{ row.inner_id }}</td>
+            <td>
+              <div><strong>{{ row.name | upper }}</strong></div>
+              <p class="small">{{ row.product.inner_id }} {{ row.product.name }}</p>
+
+            {% if row.parameters.count %}
+              {% include 'admin/simpellab_sales/inner_table.html' with items=row.parameters.all inner_title='Parameters' %}
+            {% endif %}
+
+            {% if row.product.product_fees.count %}
+                {% include 'admin/simpellab_sales/inner_table.html' with items=row.product.product_fees.all inner_title='Sample Fees' %}
+            {% endif %}
+
+            </td>
+            <td class="text-right">
+              <div>{{ row.unit_price | money }}</div>
+              <p class="small">{{ row.product.unit_of_measure }}</p>
+            </td>
+            <td class="text-center">{{ row.quantity }}</td>
+            <td class="text-right">{{ row.total_price | money }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5">
+              {% blocktrans %}
+                There is no item here.
+              {% endblocktrans %}
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+    {% if instance.sales_order.order_fees.count %}
+    <table class="model">
+      <thead>
+        <tr>
+          <th>Fee</th>
+          <th width="80" class="text-right">Amount</th>
+          <th width="40" class="text-center">Qty</th>
+          <th width="70" class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if instance.sales_order.order_fees.count %}
+          {% for row in instance.sales_order.order_fees.all|dictsort:"created_at" %}
+          <tr>
+            <td>
+              <strong>{{ row.fee | upper }}</strong>
+              <p class="small">{{ row.fee.description }}</p>
+            </td>
+            <td class="text-right">
+              <div>{{ row.amount | money }}</div>
+              <p class="small">{{ row.fee.unit_of_measure }}</p>
+            </td>
+            <td class="text-center">{{ row.quantity }}</td>
+            <td class="text-right">{{ row.total_fee | money }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="4">
+            {% blocktrans %}
+              There is no extra fee here.
+            {% endblocktrans %}
+          </td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td colspan="1" rowspan="3">
+              <p>
+                <br>
+                <strong><em>Terbilang:</em></strong><br/>
+                <em>{{ instance.grand_total | number_to_text | title }} Rupiah</em>
+              </p>
+          </td>
+          <td class="text-right" colspan="2"><strong>{% trans 'Total Order' as total %}{{ total | upper }} :</strong></td>
+          <td class="text-right">{{ instance.total_order | money }}</td>
+        </tr>
+        <tr>
+          <td class="text-right" colspan="2">
+            <strong>{% trans 'Discount' as discount %}{{ discount | upper }} {{ instance.discount_percentage }} % :</strong>
+          </td>
+          <td class="text-right">({{ instance.discount | money }})</td>
+        </tr>
+        </tr>
+        <tr>
+          <td class="text-right" colspan="2">
+            <strong>{% trans 'Grand Total' as grand_total %}{{ grand_total | upper }} :</strong>
+          </td>
+          <td class="text-right">{{ instance.grand_total | money }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  <p class="small">
+    <a href="{% url opts|admin_urlname:'changelist' %}">&lsaquo; {% trans 'Back to' %} {{ opts.verbose_name_plural|capfirst }}</a>
+  </p>
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related" class="sidebar">
+  <div class="module button_actions">
+    <input type="submit" value="Send to Email" name="_addanother"/>
+    <input type="submit" value="Send to WhatsApps" name="_addanother"/>
+    <input type="submit" value="Download PDF" name="_addanother"/>
+  </div>
+  <div class="module module__payment button_actions">
+    <input type="submit" value="Accept Payment" name="_addanother"/>
+    <input type="submit" value="Change Payment Method" name="_addanother"/>
+  </div>
+</div>
+{% endblock %}

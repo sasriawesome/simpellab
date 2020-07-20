@@ -8,7 +8,8 @@ class SalesQuotationManager(models.Manager):
         return qs
 
 
-class SalesOrderManager(models.Manager):
+class SalesOrderManager(PolymorphicManager):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs
+        

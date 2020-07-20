@@ -17,6 +17,7 @@ class InspectionServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmi
 class InspectionOrderItemParameterInline(nested_admin.NestedTabularInline):
     extra = 0
     model = InspectionOrderItemParameter
+    fields = ['parameter', 'note', 'price', 'date_effective']
     raw_id_fields = ['parameter']
     readonly_fields = ['price', 'date_effective']
 

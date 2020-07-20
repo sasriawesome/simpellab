@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.db.utils import cached_property
 from django.core.exceptions import ValidationError
 from django.utils import timezone, translation
 from simpellab.core.managers import ParanoidManager
@@ -19,6 +20,10 @@ class SimpleBaseModel(models.Model):
     )
     modified_at = models.DateTimeField(default=timezone.now, editable=False)
     
+    @cached_property
+    def opts(self):
+        return self._meta
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self._state.adding:
             self.modified_at = timezone.now()
