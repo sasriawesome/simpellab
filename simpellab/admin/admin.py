@@ -83,12 +83,9 @@ class ModelAdminMenuMixin(admin.ModelAdmin):
     def get_menu_class(self):
         return self.menu_class
 
-    def get_menu_item(self, order=None):
-        
-        def get_menu(request):
-            return self.menu_class(self, order or self.get_menu_order())
-        
-        return get_menu
+    def get_menu_item(self, request, order=None):
+
+        return self.menu_class(self, order or self.get_menu_order())
 
 
 class ModelAdmin(NumericFilterModelAdmin, ModelAdminMenuMixin, admin.ModelAdmin):
@@ -224,16 +221,16 @@ class ModelMenuGroup:
     def get_menu_order(self):
         return self.menu_order or 1000
 
-    def get_menu_item(self):
+    def get_menu_item(self, request):
         if self.modeladmins:
-            submenu = SubMenu(self.get_submenu_items())
+            submenu = SubMenu(self.get_submenu_items(request))
             return ModelAdminGroupMenuItem(self, self.get_menu_order(), submenu)
 
-    def get_submenu_items(self):
+    def get_submenu_items(self, request):
         menu_items = []
         item_order = 1
         for modeladmin in self.modeladmins:
-            menu_items.append(modeladmin.get_menu_item(order=item_order))
+            menu_items.append(modeladmin.get_menu_item)
             item_order += 1
         return menu_items
 

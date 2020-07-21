@@ -40,6 +40,19 @@ class LaboratoriumOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedMode
     readonly_fields = ['total_order', 'discount', 'grand_total']
 
 
+class LaboratoriumBlueprintParameterInline(admin.TabularInline):
+    extra = 0
+    min_num = 1
+    autocomplete_fields = ['parameter']
+    model = LaboratoriumBlueprintParameter
+
+
+@admin.register(LaboratoriumBlueprint)
+class LaboratoriumBlueprintAdmin(PolymorphicChildModelAdmin, ModelAdmin):
+    inlines = [LaboratoriumBlueprintParameterInline]
+    autocomplete_fields = ['product']
+
+
 @hooks.register('sales_order_child_model')
 def register_lab_order():
     return LaboratoriumOrder
@@ -48,3 +61,8 @@ def register_lab_order():
 @hooks.register('product_child_model')
 def register_lab_service():
     return LaboratoriumService
+
+
+@hooks.register('blueprint_child_model')
+def register_lab_service():
+    return LaboratoriumBlueprint

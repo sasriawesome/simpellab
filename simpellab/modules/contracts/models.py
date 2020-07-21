@@ -66,6 +66,29 @@ class Contract(NumeratorMixin, PolymorphicModel, SimpleBaseModel):
         return self.inner_id
 
 
+class ContractTerm(SimpleBaseModel):
+    class Meta:
+        verbose_name = _('Contract Term')
+        verbose_name_plural = _('Contract Terms')
+
+    contract = models.ForeignKey(
+        Contract,
+        related_name='quotation_terms',
+        on_delete=models.CASCADE,
+        verbose_name=_('Contract'))
+    term = models.CharField(
+        null=True, blank=True,
+        max_length=MaxLength.LONG.value,
+        verbose_name=_('Term'))
+    condition = models.CharField(
+        null=True, blank=True,
+        max_length=MaxLength.LONG.value,
+        verbose_name=_('Condition'))
+
+    def __str__(self):
+        return self.term
+
+
 class CustomerContract(Contract):
     class Meta:
         verbose_name = _('Contract')

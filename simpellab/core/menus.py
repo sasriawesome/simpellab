@@ -103,7 +103,7 @@ class Menu:
         return menu_item_from_register + menu_from_hooks
 
     def menu_items_for_request(self, request):
-        menu_items = [item(request) for item in self.registered_menu_items]
+        menu_items = [ item(request) for item in self.registered_menu_items ]
         return [ item for item in menu_items if item.is_shown(request)]
 
     def active_menu_items(self, request):

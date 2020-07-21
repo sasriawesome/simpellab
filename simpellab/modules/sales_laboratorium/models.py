@@ -10,12 +10,16 @@ from simpellab.core.enums import MaxLength
 from simpellab.core.models import SimpleBaseModel, BaseModel
 from simpellab.modules.products.models import Service, Parameter
 from simpellab.modules.sales.models import SalesOrder, OrderItem, OrderItemParameter
+from simpellab.modules.blueprints.models import Blueprint
+
 
 _ = translation.ugettext_lazy
 
 
 __all__ = [
     'LaboratoriumService',
+    'LaboratoriumBlueprint',
+    'LaboratoriumBlueprintParameter',
     'LaboratoriumOrder',
     'LaboratoriumOrderItem',
     'LaboratoriumOrderItemParameter'
@@ -29,6 +33,47 @@ class LaboratoriumService(Service):
 
     def get_doc_prefix(self):
         return 'LAB'
+
+
+class LaboratoriumBlueprint(Blueprint):
+    class Meta:
+        verbose_name = _('Blueprint')
+        verbose_name_plural = _('Blueprints')
+    
+    product = models.ForeignKey(
+        LaboratoriumService,
+        on_delete=models.CASCADE,
+        related_name='blueprints'
+        )
+
+
+class LaboratoriumBlueprintParameter(SimpleBaseModel):
+    class Meta:
+        verbose_name = _('Blueprint Parameter')
+        verbose_name_plural = _('Blueprint Parameters')
+        unique_together = ('blueprint', 'parameter')
+
+    blueprint = models.ForeignKey(
+        LaboratoriumBlueprint,
+        on_delete=models.CASCADE,
+        related_name='parameters',
+        verbose_name=_('Blueprint')
+    )
+    parameter = models.ForeignKey(
+        Parameter,
+        on_delete=models.CASCADE,
+        related_name='lab_blueprints'
+    )
+    note = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Note'))
+
+    def __str__(self):
+        return str(self.parameter)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class LaboratoriumOrder(SalesOrder):

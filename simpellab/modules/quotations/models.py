@@ -52,6 +52,14 @@ class SalesQuotation(NumeratorMixin, SimpleBaseModel):
         null=True, blank=True,
         on_delete=models.SET_NULL,
         verbose_name=_("Letter Template"))
+    partner = models.ForeignKey(
+        Partner, 
+        null=True, blank=True,
+        on_delete=models.PROTECT,
+        verbose_name=_('Customer'))
+    to = models.CharField(
+        max_length=MaxLength.MEDIUM.value
+        )
     title = models.CharField(
         max_length=MaxLength.LONG.value,
         verbose_name=_('Title'))
@@ -61,9 +69,6 @@ class SalesQuotation(NumeratorMixin, SimpleBaseModel):
         verbose_name=_('Description'))
     due_date = models.DateTimeField(
         verbose_name=_("Due date"))
-    customer = models.ForeignKey(
-        Partner, on_delete=models.PROTECT,
-        verbose_name=_('Customer'))
     total_amount = models.DecimalField(
         default=0, max_digits=15,
         decimal_places=2,

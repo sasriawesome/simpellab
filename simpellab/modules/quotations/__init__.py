@@ -1,0 +1,1 @@
+default_app_config = 'simpellab.modules.quotations.apps.AppConfig'

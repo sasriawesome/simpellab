@@ -50,6 +50,10 @@ class ModelAdminGroupMenuItem(MenuDropdown):
             label=modeladmin_group.get_menu_label(), menu=menu,
             icon=self.icon, order=order, )
 
+    def menu_items_for_request(self, request):
+        menu_items = [ item for item in self.registered_menu_items ]
+        return [ item for item in menu_items if item.is_shown(request)]
+
     def is_shown(self, request):
         """
         If there aren't any visible items in the submenu, don't bother to show

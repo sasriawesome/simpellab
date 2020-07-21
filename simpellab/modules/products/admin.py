@@ -139,4 +139,4 @@ class ProductModelMenuGroup(ModelMenuGroup):
 @hooks.register('admin_menu_item')
 def register_product_menu(request):
     group = ProductModelMenuGroup()
-    return group.get_menu_item()
+    return group.get_menu_item(request)
