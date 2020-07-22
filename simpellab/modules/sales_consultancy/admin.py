@@ -4,13 +4,13 @@ from polymorphic.admin import PolymorphicChildModelAdmin
 
 from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
-from simpellab.modules.products.admin import ProductMixin, ProductFeeInline, SpecificationInline
+from simpellab.modules.products.admin import ProductChildAdmin, ProductFeeInline, SpecificationInline
 from simpellab.modules.sales.admin import OrderFeeInline
 from simpellab.modules.sales_consultancy.models import *
 
 
 @admin.register(ConsultancyService)
-class ConsultancyServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
+class ConsultancyServiceAdmin(ProductChildAdmin):
     inlines = [ProductFeeInline, SpecificationInline]
 
 

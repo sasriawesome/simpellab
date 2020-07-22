@@ -30,10 +30,11 @@ class Blueprint(PolymorphicModel, BaseModel):
         )
     name = models.CharField(
         max_length=MaxLength.LONG.value,
-        verbose_name=_('Title'),
+        verbose_name=_('Name'),
         help_text=_('Sample name or identifier')
         )
     note = models.CharField(
+        null=True, blank=True,
         max_length=MaxLength.TEXT.value,
         verbose_name=_('Note')
         )

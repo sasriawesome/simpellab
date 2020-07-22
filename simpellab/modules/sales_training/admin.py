@@ -4,7 +4,7 @@ from polymorphic.admin import PolymorphicChildModelAdmin
 
 from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
-from simpellab.modules.products.admin import ProductMixin, ProductFeeInline, SpecificationInline
+from simpellab.modules.products.admin import ProductChildAdmin, ProductFeeInline, SpecificationInline
 from simpellab.modules.sales.admin import OrderFeeInline
 from simpellab.modules.sales_training.models import *
 
@@ -15,7 +15,7 @@ class TrainingTopicInline(admin.TabularInline):
 
 
 @admin.register(TrainingService)
-class TrainingServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
+class TrainingServiceAdmin(ProductChildAdmin):
     inlines = [ProductFeeInline, SpecificationInline, TrainingTopicInline]
     
 

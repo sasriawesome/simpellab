@@ -12,7 +12,7 @@
       <tr>
         <td width="150"><strong>{% trans 'Created At' %}</strong></td>
         <td>{{ instance.created_at }}</td>
-        <td rowspan="3">
+        <td rowspan="3" width="125">
           {% if instance.qrcode.url %}
             <img class="qrcode qrcode_small" src="{{ instance.qrcode.url }}" alt="qrcode img">
           {% endif %}

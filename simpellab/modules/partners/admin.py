@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils import translation
 
+from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
 from simpellab.modules.partners.models import (
     Partner,
@@ -48,3 +49,9 @@ class PartnerAdmin(ModelAdmin):
 @admin.register(BalanceMutation)
 class BalanceMutationAdmin(ModelAdmin):
     list_display = ['created_at', 'partner', 'reference', 'note','flow', 'amount']
+
+
+@hooks.register('admin_menu_item')
+def register_partner_menu(request):
+    partner_admin = PartnerAdmin(Partner, admin.site)
+    return partner_admin.get_menu_item(request)

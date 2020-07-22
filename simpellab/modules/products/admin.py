@@ -1,4 +1,7 @@
+from django.urls import path
 from django.contrib import admin
+from django.utils.html import format_html
+from django.shortcuts import reverse, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin
 
@@ -6,6 +9,8 @@ from simpellab.core import hooks
 from simpellab.admin.menus import admin_menu
 from simpellab.admin.admin import ModelAdmin, ModelMenuGroup
 from simpellab.modules.products.models import *
+from simpellab.modules.carts.models import CommonCart
+
 from .filters import ProductChildFilter
 
 
@@ -46,9 +51,6 @@ class FeeAdmin(ModelAdmin):
     autocomplete_fields = ['unit_of_measure']
     menu_icon = 'tag'
 
-class ProductChildAdmin(PolymorphicChildModelAdmin, ModelAdmin):
-    base_model = Product
-
 
 @admin.register(Product)
 class ProductAdmin(PolymorphicParentModelAdmin, ModelAdmin):
@@ -61,6 +63,40 @@ class ProductAdmin(PolymorphicParentModelAdmin, ModelAdmin):
     ]
     list_filter = [ProductChildFilter]
     list_display = ['inner_id', 'name', 'price', 'fee', 'total_price']
+
+    def get_urls(self):
+        info = self.model._meta.app_label, self.model._meta.model_name
+        urls = super().get_urls()
+        custom_urls = []
+        custom_urls.append(
+            path('<path:object_id>/add_to_cart/',
+                    self.admin_site.admin_view(self.add_to_cart_view),
+                    name='%s_%s_add_to_cart' % info
+                    )
+        )
+        return custom_urls + urls
+    
+    def add_to_cart_view(self, request, object_id, *args, **kwargs):
+        product = get_object_or_404(self.model, pk=object_id)
+        try:
+            cart_item = product.add_to_cart(request)
+            return redirect(reverse('admin:simpellab_carts_cart_change', args=(cart_item.id,)))
+        except Exception as err:
+            print(err)
+            return redirect(reverse('admin:simpellab_carts_cart_changelist'))
+
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request).copy()
+        if self.has_view_or_change_permission(request):
+            list_display.append('add_to_cart_link')
+        return list_display
+        
+    def add_to_cart_link(self, obj):
+        template = "<a class='addlink' href='%s' title='%s'></a>"
+        url = reverse(self.get_url_name('add_to_cart'), args=(obj.id,))
+        return format_html(template % (url, _('add to cart').title()))
+    
+    add_to_cart_link.short_description=''
 
     def get_child_models(self):
         """ 
@@ -96,8 +132,8 @@ class ProductFeeInline(admin.TabularInline):
     raw_id_fields = ['fee']
     readonly_fields = ['price', 'date_effective']
 
-
-class ProductMixin(ModelAdmin):
+    
+class ProductAdmin(ModelAdmin):
     ordering = ['-created_at']
     list_display = ['name']
     search_fields = ['inner_id', 'name']
@@ -106,25 +142,30 @@ class ProductMixin(ModelAdmin):
     readonly_fields = ['fee', 'total_price']
     inlines = [SpecificationInline, ProductFeeInline]
 
+
+class ProductChildAdmin(PolymorphicChildModelAdmin, ProductAdmin):
+    base_model = Product
+
+
 @admin.register(Asset)
-class AssetAdmin(ProductMixin, ProductChildAdmin, ModelAdmin):
+class AssetAdmin(ProductChildAdmin):
     pass
 
 
 @admin.register(Inventory)
-class InventoryAdmin(ProductMixin, ProductChildAdmin, ModelAdmin):
+class InventoryAdmin(ProductChildAdmin):
     pass
 
 
 @admin.register(Service)
-class ServiceAdmin(ProductMixin, ProductChildAdmin, ModelAdmin):
+class ServiceAdmin(ProductChildAdmin):
     pass
 
 
 class ProductModelMenuGroup(ModelMenuGroup):
     adminsite = admin.site
     menu_icon = 'package'
-    menu_label = _('Product and Services')
+    menu_label = _('Products')
     menu_order = 2
     items = [ 
         (Product, ProductAdmin), 

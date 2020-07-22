@@ -4,13 +4,13 @@ from polymorphic.admin import PolymorphicChildModelAdmin
 
 from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
-from simpellab.modules.products.admin import ProductMixin, ProductFeeInline, SpecificationInline
+from simpellab.modules.products.admin import ProductChildAdmin, ProductFeeInline, SpecificationInline
 from simpellab.modules.sales.admin import OrderFeeInline
 from simpellab.modules.sales_calibration.models import *
 
 
 @admin.register(CalibrationService)
-class CalibrationServiceAdmin(ProductMixin, PolymorphicChildModelAdmin, ModelAdmin):
+class CalibrationServiceAdmin(ProductChildAdmin):
     inlines = [ProductFeeInline, SpecificationInline]
     
 

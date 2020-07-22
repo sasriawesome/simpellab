@@ -407,6 +407,7 @@ class InvoiceStatusMixin(
         verbose_name=_('Date closed')
     )
 
+
 class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
     class Meta:
         verbose_name = _('Invoice')
@@ -414,6 +415,15 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
 
     doc_prefix = 'INV'
 
+    contract = models.BooleanField(
+        default=False,
+        help_text=_('This invoice is based on customer contract')
+        )
+    contract_number = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Contract number')
+    )
     sales_order = models.OneToOneField(
         SalesOrder,
         on_delete=models.PROTECT,
@@ -527,6 +537,8 @@ class Invoice(QRCodeMixin, NumeratorMixin, InvoiceStatusMixin, SimpleBaseModel):
             self.status = Status.CLOSED.value
             self.date_closed = timezone.now
         self.billed_to = self.sales_order.customer
+        self.contract = self.sales_order.contract
+        self.contract_number = self.sales_order.contract_number
         self.calc_refund_receivable()
         super().save(*args, **kwargs)
 

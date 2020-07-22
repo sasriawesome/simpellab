@@ -1,6 +1,6 @@
 import uuid
 from django.dispatch import receiver
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.utils import translation, timezone
 from django.core.exceptions import ValidationError
@@ -19,6 +19,7 @@ from simpellab.core.managers import BasePolymorphicManager
 from simpellab.utils.slugify import unique_slugify
 from simpellab.modules.partners.models import Partner
 from simpellab.modules.products.mixins import SellableMixin, StockableMixin
+
 
 _ = translation.gettext_lazy
 
@@ -337,6 +338,14 @@ class Product(NumeratorMixin, SimpleBaseModel, PolymorphicModel):
         self.total_price = self.get_total_price()
         super().save(**kwargs)
 
+    def add_to_cart(self, request):
+        from simpellab.modules.carts.models import CommonCart
+        with transaction.atomic():
+            matrix = {'user':request.user, 'product': self}
+            cart, create = CommonCart.objects.get_or_create(**matrix, defaults=matrix)
+            cart.quantity += 1
+            cart.save()
+            return cart
 
 class TaggedProduct(TaggedItemBase):
     class Meta:

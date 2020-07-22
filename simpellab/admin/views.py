@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from constance import config
 from wkhtmltopdf.views import PDFTemplateView
 
+
 class ModelAdminPDFViewBase(PDFTemplateView):
     title = None
     modeladmin = None

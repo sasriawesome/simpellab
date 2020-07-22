@@ -15,7 +15,7 @@
       <tr>
         <td width="150"><strong>{% trans 'Created At' %}</strong></td>
         <td>{{ instance.created_at }}</td>
-        <td rowspan="3">
+        <td rowspan="3" width="125">
           <img class="qrcode qrcode_small" src="{{ instance.qrcode.url }}" alt="qrcode img">
         </td>
       </tr>
@@ -34,7 +34,7 @@
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Contract' %}</strong></td>
-        <td colspan="2">{{ instance.sales_order.contract }} {% if instance.sales_order.contract %}{{ instance.sales_order.contract_number }}{% endif %}</td>
+        <td colspan="2">{{ instance.contract }} {% if instance.contract %}{{ instance.contract_number }}{% endif %}</td>
       </tr>
       <tr>
         <td width="150"><strong>{% trans 'Status' %}</strong></td>

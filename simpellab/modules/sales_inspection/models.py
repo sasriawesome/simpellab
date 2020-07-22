@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 from django.utils import translation, timezone
@@ -9,7 +9,9 @@ from django_numerators.models import NumeratorMixin
 
 from simpellab.core.enums import MaxLength
 from simpellab.core.models import SimpleBaseModel, BaseModel
+from simpellab.modules.carts.models import Cart
 from simpellab.modules.products.models import Service, Parameter
+from simpellab.modules.blueprints.models import Blueprint
 from simpellab.modules.sales.models import SalesOrder, OrderItem, OrderItemParameter
 
 _ = translation.ugettext_lazy
@@ -17,6 +19,10 @@ _ = translation.ugettext_lazy
 
 __all__ = [
     'InspectionService',
+    'InspectionBlueprint',
+    'InspectionBlueprintParameter',
+    'InspectionCart',
+    'InspectionCartParameter',
     'InspectionOrder',
     'InspectionOrderItem',
     'InspectionOrderItemParameter'
@@ -28,8 +34,123 @@ class InspectionService(Service):
         verbose_name = _('Technical Inspection')
         verbose_name_plural = _('Technical Inspections')
 
+    def add_to_cart(self, request):
+        with transaction.atomic():
+            matrix = {'user':request.user, 'product': self, 'quantity':1}
+            cart = InspectionCart.objects.create(**matrix)
+            return cart
+            
     def get_doc_prefix(self):
         return 'LIT'
+
+
+class InspectionCart(Cart):
+    class Meta:
+        verbose_name =_('Inspection Cart')
+        verbose_name_plural =_('Inspection Carts')
+
+    product = models.ForeignKey(
+        InspectionService,
+        on_delete=models.CASCADE,
+        related_name='lit_carts',
+        verbose_name=_('Product')
+        )
+    name = models.CharField(
+        max_length=MaxLength.LONG.value,
+        verbose_name=_('Name'),
+        help_text=_('Sample name or identifier')
+        )
+    note = models.CharField(
+        null=True, blank=True,
+        max_length=MaxLength.TEXT.value,
+        verbose_name=_('Note')
+        )
+
+
+class InspectionCartParameter(SimpleBaseModel):
+    class Meta:
+        verbose_name = _('Inspection Cart Parameter')
+        verbose_name_plural = _('Inspection Cart Parameters')
+        unique_together = ('cart', 'parameter')
+
+    cart = models.ForeignKey(
+        InspectionCart,
+        on_delete=models.CASCADE,
+        related_name='parameters',
+        verbose_name=_('Cart')
+    )
+    parameter = models.ForeignKey(
+        Parameter,
+        on_delete=models.CASCADE,
+        related_name='lit_carts'
+    )
+    note = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Note'))
+
+    def __str__(self):
+        return str(self.parameter)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+
+class InspectionBlueprint(Blueprint):
+    class Meta:
+        verbose_name = _('Inspection Blueprint')
+        verbose_name_plural = _('Inspection Blueprints')
+    
+    product = models.ForeignKey(
+        InspectionService,
+        on_delete=models.CASCADE,
+        related_name='blueprints'
+        )
+
+    def add_to_cart(self, request):
+        with transaction.atomic():
+            cart = InspectionCart.objects.create(
+                user=request.user,
+                product=self.product,
+                name=self.name,
+                note=self.note,
+                quantity=1
+            )
+            for bp_param in self.parameters.all():
+                InspectionCartParameter.objects.create(
+                    cart=cart,
+                    parameter=bp_param.parameter,
+                    note=bp_param.note
+                )
+            return cart
+
+class InspectionBlueprintParameter(SimpleBaseModel):
+    class Meta:
+        verbose_name = _('Blueprint Parameter')
+        verbose_name_plural = _('Blueprint Parameters')
+        unique_together = ('blueprint', 'parameter')
+
+    blueprint = models.ForeignKey(
+        InspectionBlueprint,
+        on_delete=models.CASCADE,
+        related_name='parameters',
+        verbose_name=_('Blueprint')
+    )
+    parameter = models.ForeignKey(
+        Parameter,
+        on_delete=models.CASCADE,
+        related_name='lit_blueprints'
+    )
+    note = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Note'))
+
+    def __str__(self):
+        return str(self.parameter)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class InspectionOrder(SalesOrder):

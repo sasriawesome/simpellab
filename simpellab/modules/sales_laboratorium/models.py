@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 from django.utils import translation, timezone
@@ -11,6 +11,7 @@ from simpellab.core.models import SimpleBaseModel, BaseModel
 from simpellab.modules.products.models import Service, Parameter
 from simpellab.modules.sales.models import SalesOrder, OrderItem, OrderItemParameter
 from simpellab.modules.blueprints.models import Blueprint
+from simpellab.modules.carts.models import Cart
 
 
 _ = translation.ugettext_lazy
@@ -18,6 +19,8 @@ _ = translation.ugettext_lazy
 
 __all__ = [
     'LaboratoriumService',
+    'LaboratoriumCart',
+    'LaboratoriumCartParameter',
     'LaboratoriumBlueprint',
     'LaboratoriumBlueprintParameter',
     'LaboratoriumOrder',
@@ -34,6 +37,63 @@ class LaboratoriumService(Service):
     def get_doc_prefix(self):
         return 'LAB'
 
+    def add_to_cart(self, request):
+        with transaction.atomic():
+            matrix = {'user':request.user, 'product': self, 'quantity':1}
+            cart = LaboratoriumCart.objects.create(**matrix)
+            return cart
+
+class LaboratoriumCart(Cart):
+    class Meta:
+        verbose_name =_('Laboratorium Cart')
+        verbose_name_plural =_('Laboratorium Carts')
+
+    product = models.ForeignKey(
+        LaboratoriumService,
+        on_delete=models.CASCADE,
+        related_name='lab_carts',
+        verbose_name=_('Product')
+        )
+    name = models.CharField(
+        max_length=MaxLength.LONG.value,
+        verbose_name=_('Name'),
+        help_text=_('Sample name or identifier')
+        )
+    note = models.CharField(
+        null=True, blank=True,
+        max_length=MaxLength.TEXT.value,
+        verbose_name=_('Note')
+        )
+
+
+class LaboratoriumCartParameter(SimpleBaseModel):
+    class Meta:
+        verbose_name = _('Laboratorium Cart Parameter')
+        verbose_name_plural = _('Laboratorium Cart Parameters')
+        unique_together = ('cart', 'parameter')
+
+    cart = models.ForeignKey(
+        LaboratoriumCart,
+        on_delete=models.CASCADE,
+        related_name='parameters',
+        verbose_name=_('Cart')
+    )
+    parameter = models.ForeignKey(
+        Parameter,
+        on_delete=models.CASCADE,
+        related_name='lab_carts'
+    )
+    note = models.CharField(
+        max_length=MaxLength.MEDIUM.value,
+        null=True, blank=True,
+        verbose_name=_('Note'))
+
+    def __str__(self):
+        return str(self.parameter)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
 
 class LaboratoriumBlueprint(Blueprint):
     class Meta:
@@ -46,6 +106,22 @@ class LaboratoriumBlueprint(Blueprint):
         related_name='blueprints'
         )
 
+    def add_to_cart(self, request):
+        with transaction.atomic():
+            cart = LaboratoriumCart.objects.create(
+                user=request.user,
+                product=self.product,
+                name=self.name,
+                note=self.note,
+                quantity=1
+            )
+            for bp_param in self.parameters.all():
+                LaboratoriumCartParameter.objects.create(
+                    cart=cart,
+                    parameter=bp_param.parameter,
+                    note=bp_param.note
+                )
+            return cart
 
 class LaboratoriumBlueprintParameter(SimpleBaseModel):
     class Meta:

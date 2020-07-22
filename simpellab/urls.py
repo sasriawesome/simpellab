@@ -4,15 +4,14 @@ Simpellab URL Configuration
 """
 from django.conf import settings
 from django.urls import path, include
-from django.contrib import admin
 
-from simpellab.admin.sites import admin_site
+from simpellab.admin.urls import patterns
 
 urlpatterns = [
     path('go/', include('simpellab.modules.shorturls.urls')),
     path('salesorder/', include('simpellab.modules.sales.urls')),
     # path('api/', include('simpellab.api.urls')),
-    path('admin/', admin.site.urls),
+    path('admin/', patterns),
     path('_nested_admin/', include('nested_admin.urls'))
 ]
 

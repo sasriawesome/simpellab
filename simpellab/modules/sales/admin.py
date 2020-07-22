@@ -8,10 +8,7 @@ from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModel
 from admin_numeric_filter.admin import RangeNumericFilter
 
 from simpellab.core import hooks
-from simpellab.admin.admin import ModelAdmin, ModelMenuGroup
-from simpellab.modules.partners.models import Partner
-from simpellab.modules.partners.admin import PartnerAdmin
-from simpellab.modules.sales.forms import OrderProductFormset
+from simpellab.admin.admin import ModelAdmin, ReadOnlyAdminMixin, ModelMenuGroup
 from simpellab.modules.sales.models import *
 
 
@@ -24,6 +21,27 @@ class OrderFeeInline(nested_admin.NestedTabularInline):
     model = OrderFee
     autocomplete_fields = ['fee']
     readonly_fields = ['amount', 'total_fee']
+
+
+class SalesOrderChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
+    autocomplete_fields = ['customer']
+    inlines = [OrderFeeInline]
+    readonly_fields = ['total_order', 'discount', 'grand_total']
+
+    def get_inlines(self, request, obj):
+        """Hook for specifying custom inlines."""
+        if obj and self.has_change_permission:
+            return self.inlines
+        else:
+            return [OrderFeeInline]
+
+
+class SalesOrderItemInline(nested_admin.NestedStackedInline):
+    extra = 0
+    min_num = 1
+    autocomplete_fields = ['product']
+    fields = ['product', 'name', 'quantity', 'note', 'unit_price', 'total_price']
+    readonly_fields = ['unit_price', 'total_price']
 
 
 class OrderAdminBase(ModelAdmin):
@@ -73,19 +91,13 @@ class OrderAdminBase(ModelAdmin):
     def validate_action(self, request, queryset):
         try:
             for i in queryset.all():
-                i.get_real_instance().validate()
+                real = i.get_real_instance()
+                real.validate()
         except PermissionError as err:
             print(err)
 
     validate_action.short_description = _('Validate selected Sales Orders')
 
-
-@admin.register(SalesOrder)
-class PolymorphicOrderAdmin(PolymorphicParentModelAdmin, OrderAdminBase):
-    child_models = [
-        CommonOrder
-    ]
-    
     def get_inspect_context(self, obj, request, extra_context=None):
         context = {
             **self.admin_site.each_context(request),
@@ -95,6 +107,17 @@ class PolymorphicOrderAdmin(PolymorphicParentModelAdmin, OrderAdminBase):
             **(extra_context or {})
         }
         return context
+
+
+@admin.register(SalesOrder)
+class OrderAdmin(ReadOnlyAdminMixin, OrderAdminBase):
+    pass
+
+
+class PolymorphicOrderAdmin(PolymorphicParentModelAdmin, OrderAdminBase):
+    child_models = [
+        CommonOrder
+    ]
 
     def get_child_models(self):
         """ 
@@ -118,41 +141,30 @@ class PolymorphicOrderAdmin(PolymorphicParentModelAdmin, OrderAdminBase):
         return child_models
 
 
-class CommonOrderItemInline(nested_admin.NestedTabularInline):
-    extra = 0
-    min_num = 1
+class CommonOrderItemInline(SalesOrderItemInline):
     model = CommonOrderItem
-    autocomplete_fields = ['product']
-    fields = ['product', 'name', 'quantity', 'note', 'unit_price', 'total_price']
-    readonly_fields = ['unit_price', 'total_price']
 
 
 @admin.register(CommonOrder)
-class CommonOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
-    autocomplete_fields = ['customer']
+class CommonOrderAdmin(SalesOrderChildAdmin):
     inlines = [OrderFeeInline, CommonOrderItemInline]
-    readonly_fields = ['total_order', 'discount', 'grand_total']
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(ModelAdmin):
+class InvoiceAdmin(ReadOnlyAdminMixin, ModelAdmin):
     menu_icon = 'bookmark'
     search_fields = ['inner_id', 'billed_to__name']
-    list_display = ['inner_id', 'billed_to', 'sales_order', 'due_date', 'grand_total', 'paid']
-
-    def has_change_permission(self, request, obj=None):
-        return True
+    list_display = ['inner_id', 'billed_to', 'sales_order', 'due_date', 'grand_total', 'paid', 'contract']
 
 
 class SalesModelMenuGroup(ModelMenuGroup):
     adminsite = admin.site
-    menu_icon = 'cart'
-    menu_label = _('Partner and Sales')
+    menu_icon = 'bookmark'
+    menu_label = _('Sales')
     menu_order = 3
     items = [ 
-        (SalesOrder, PolymorphicOrderAdmin), 
-        (Invoice, InvoiceAdmin), 
-        (Partner, PartnerAdmin), 
+        (SalesOrder, OrderAdmin), 
+        (Invoice, InvoiceAdmin),
     ]
 
 
