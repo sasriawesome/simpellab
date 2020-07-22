@@ -116,9 +116,13 @@
       {% block result_list %}
           {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
           {% result_list cl %}
+          {% block after_result_list %}{% endblock %}
           {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
       {% endblock %}
-      {% block pagination %}{% pagination cl %}{% endblock %}
+
+      {% block pagination %}
+        {% pagination cl %}
+      {% endblock %}
       </form>
     </div>
   </div>

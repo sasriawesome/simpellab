@@ -1,0 +1,37 @@
+{% extends 'admin/change_list.html' %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        #changelist table thead th {
+            padding: 5px 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block result_list %}
+    <div class="results">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cl.queryset.all %}
+                    <tr>
+                        <td>{{ item.get_real_instance.product }}</td>
+                        <td>{{ item.get_real_instance.quantity }}</td>
+                        <td>{{ item.get_real_instance.price }}</td>
+                        <td>{{ item.get_real_instance.total_price }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block pagination %}{% endblock %}

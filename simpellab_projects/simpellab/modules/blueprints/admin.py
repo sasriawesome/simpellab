@@ -21,11 +21,8 @@ class BlueprintAdmin(PolymorphicParentModelAdmin, ModelAdmin):
     menu_order = 1
     search_fields = ['name']
     child_models = []
-    list_display = ['name', 'product']
+    list_display = ['name']
     inspect_enabled = False
-    
-    def product(self, obj):
-        return obj.get_real_instance().product
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(user=request.user)

@@ -65,6 +65,16 @@ class LaboratoriumCart(Cart):
         verbose_name=_('Note')
         )
 
+    @property
+    def price(self):
+        unit_price = self.product.total_price
+        parameter_price = self.parameters.all().aggregate(
+            total=models.Sum('parameter__price'))['total'] or 0
+        return unit_price + parameter_price
+
+    @property
+    def total_price(self):
+        return self.price * self.quantity
 
 class LaboratoriumCartParameter(SimpleBaseModel):
     class Meta:

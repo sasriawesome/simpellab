@@ -18,17 +18,20 @@ class CartAdmin(PolymorphicParentModelAdmin, ModelAdmin):
     menu_label = 'My Cart'
     menu_icon = 'cart'
     inspect_enabled=False
-    list_display = ['product', 'quantity']
+    list_display = ['product', 'quantity', 'price', 'sub_total']
     list_select_related = []
     child_models = [
         CommonCart
     ]
-
+    
     def product(self, obj):
         return obj.get_real_instance().product
 
-    def quantity(self, obj):
-        return obj.get_real_instance().quantity
+    def price(self, obj):
+        return obj.get_real_instance().price
+
+    def sub_total(self, obj):
+        return obj.get_real_instance().price * obj.quantity
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(user=request.user)

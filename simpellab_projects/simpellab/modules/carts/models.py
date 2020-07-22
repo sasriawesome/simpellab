@@ -33,10 +33,11 @@ class Cart(PolymorphicModel):
         default=0,
         verbose_name=_('Quantity')
     )
+
     def __str__(self):
         return str(self.user)
 
-    
+
 class CommonCart(Cart):
     class Meta:
         verbose_name =_('Common Cart')
@@ -48,3 +49,12 @@ class CommonCart(Cart):
         related_name='common_carts',
         verbose_name=_('Product')
         )
+
+    @property
+    def price(self):
+        unit_price = self.product.total_price
+        return unit_price
+    
+    @property
+    def total_price(self):
+        return self.price * self.quantity
