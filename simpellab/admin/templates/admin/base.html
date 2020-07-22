@@ -168,7 +168,7 @@
         width: 125px;
     }
 </style>
-{% if perms.is_authenticated %}
+{% if has_permission or perms.is_autenticated %}
 <style>
     #content {
         min-height: 60vh;
@@ -270,7 +270,7 @@
   data-admin-utc-offset="{% now "Z" %}">
 
 {% block sidenav %}
-  {% if perms.is_authenticated and not is_popup %}
+  {% if has_permission or perms.is_autenticated and not is_popup %}
       {% include 'admin/sidenav.html' %}
   {% endif %}
 {% endblock %}

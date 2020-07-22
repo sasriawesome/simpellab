@@ -15,12 +15,12 @@
 {% block nav-global %}{% endblock %}
 
 {% block footer %}
-{% if not is_popup %}
-<div class="footer">
-    <div class="footer_menu"></div>
-    <div class="footer_copyright">
-        <p class="small"><a href="#">Copyright © 2019 - 2020</a></p>
+    {% if has_permission and not is_popup %}
+    <div class="footer">
+        <div class="footer_menu"></div>
+        <div class="footer_copyright">
+            <p class="small"><a href="#">Copyright © 2019 - 2020</a></p>
+        </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 {% endblock %}

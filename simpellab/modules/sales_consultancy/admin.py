@@ -5,7 +5,7 @@ from polymorphic.admin import PolymorphicChildModelAdmin
 from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
 from simpellab.modules.products.admin import ProductChildAdmin, ProductFeeInline, SpecificationInline
-from simpellab.modules.sales.admin import OrderFeeInline
+from simpellab.modules.sales.admin import SalesOrderChildAdmin, OrderFeeInline, SalesOrderItemInline
 from simpellab.modules.sales_consultancy.models import *
 
 
@@ -14,19 +14,13 @@ class ConsultancyServiceAdmin(ProductChildAdmin):
     inlines = [ProductFeeInline, SpecificationInline]
 
 
-class ConsultancyOrderItemInline(nested_admin.NestedStackedInline):
-    extra = 0
-    min_num = 1
+class ConsultancyOrderItemInline(SalesOrderItemInline):
     model = ConsultancyOrderItem
-    readonly_fields = ['unit_price', 'total_price']
-    raw_id_fields = ['product']
 
 
 @admin.register(ConsultancyOrder)
-class ConsultancyOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
-    autocomplete_fields = ['customer']
+class ConsultancyOrderAdmin(SalesOrderChildAdmin):
     inlines = [OrderFeeInline, ConsultancyOrderItemInline]
-    readonly_fields = ['total_order', 'discount', 'grand_total']
     
 
 @hooks.register('sales_order_child_model')

@@ -360,7 +360,7 @@ class TaggedProduct(TaggedItemBase):
         related_name="tagged_products")
 
     def __str__(self):
-        return self.tag
+        return str(self.tag)
 
 
 class Specification(BaseModel):

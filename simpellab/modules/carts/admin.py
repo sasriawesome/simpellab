@@ -9,7 +9,7 @@ from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModel
 from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
 from simpellab.modules.sales.admin import PolymorphicOrderAdmin
-from simpellab.modules.carts.models import Cart, CommonCart, SalesOrderProxy
+from simpellab.modules.carts.models import Cart, CommonCart
 
 
 @admin.register(Cart)
@@ -81,11 +81,6 @@ class CommonCartAdmin(PolymorphicChildModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.user = request.user
         obj.save()
-
-
-@admin.register(SalesOrderProxy)
-class SalesOrderProxy(PolymorphicOrderAdmin):
-    pass
 
 
 @hooks.register('admin_menu_item')

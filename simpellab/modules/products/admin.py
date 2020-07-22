@@ -1,5 +1,7 @@
 from django.urls import path
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
 from django.utils.html import format_html
 from django.shortcuts import reverse, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -134,6 +136,7 @@ class ProductFeeInline(admin.TabularInline):
 
     
 class ProductAdmin(ModelAdmin):
+    menu_icon = 'package'
     ordering = ['-created_at']
     list_display = ['name']
     search_fields = ['inner_id', 'name']
@@ -146,6 +149,46 @@ class ProductAdmin(ModelAdmin):
 class ProductChildAdmin(PolymorphicChildModelAdmin, ProductAdmin):
     base_model = Product
 
+    def response_delete(self, request, obj_display, obj_id):
+        """
+        Determine the HttpResponse for the delete_view stage.
+        """
+        opts = self.model._meta
+
+        if '_popup' in request.POST:
+            popup_response_data = json.dumps({
+                'action': 'delete',
+                'value': str(obj_id),
+            })
+            return TemplateResponse(request, self.popup_response_template or [
+                'admin/%s/%s/popup_response.html' % (opts.app_label, opts.model_name),
+                'admin/%s/popup_response.html' % opts.app_label,
+                'admin/popup_response.html',
+            ], {
+                'popup_response_data': popup_response_data,
+            })
+
+        self.message_user(
+            request,
+            _('The %(name)s “%(obj)s” was deleted successfully.') % {
+                'name': opts.verbose_name,
+                'obj': obj_display,
+            },
+            messages.SUCCESS,
+        )
+
+        if self.has_change_permission(request, None):
+            post_url = reverse(
+                'admin:simpellab_products_product_changelist',
+                current_app=self.admin_site.name,
+            )
+            preserved_filters = self.get_preserved_filters(request)
+            post_url = add_preserved_filters(
+                {'preserved_filters': preserved_filters, 'opts': opts}, post_url
+            )
+        else:
+            post_url = reverse('admin:index', current_app=self.admin_site.name)
+        return redirect(post_url)
 
 @admin.register(Asset)
 class AssetAdmin(ProductChildAdmin):

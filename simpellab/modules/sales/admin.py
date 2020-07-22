@@ -1,6 +1,9 @@
 import nested_admin
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
 from django.utils import translation
+from django.shortcuts import reverse, redirect
 from django.core.exceptions import ImproperlyConfigured
 
 from rangefilter.filter import DateRangeFilter
@@ -27,6 +30,47 @@ class SalesOrderChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelA
     autocomplete_fields = ['customer']
     inlines = [OrderFeeInline]
     readonly_fields = ['total_order', 'discount', 'grand_total']
+
+    def response_delete(self, request, obj_display, obj_id):
+        """
+        Determine the HttpResponse for the delete_view stage.
+        """
+        opts = self.model._meta
+
+        if '_popup' in request.POST:
+            popup_response_data = json.dumps({
+                'action': 'delete',
+                'value': str(obj_id),
+            })
+            return TemplateResponse(request, self.popup_response_template or [
+                'admin/%s/%s/popup_response.html' % (opts.app_label, opts.model_name),
+                'admin/%s/popup_response.html' % opts.app_label,
+                'admin/popup_response.html',
+            ], {
+                'popup_response_data': popup_response_data,
+            })
+
+        self.message_user(
+            request,
+            _('The %(name)s “%(obj)s” was deleted successfully.') % {
+                'name': opts.verbose_name,
+                'obj': obj_display,
+            },
+            messages.SUCCESS,
+        )
+
+        if self.has_change_permission(request, None):
+            post_url = reverse(
+                'admin:simpellab_sales_salesorder_changelist',
+                current_app=self.admin_site.name,
+            )
+            preserved_filters = self.get_preserved_filters(request)
+            post_url = add_preserved_filters(
+                {'preserved_filters': preserved_filters, 'opts': opts}, post_url
+            )
+        else:
+            post_url = reverse('admin:index', current_app=self.admin_site.name)
+        return redirect(post_url)
 
     def get_inlines(self, request, obj):
         """Hook for specifying custom inlines."""
@@ -109,11 +153,11 @@ class OrderAdminBase(ModelAdmin):
         return context
 
 
-@admin.register(SalesOrder)
 class OrderAdmin(ReadOnlyAdminMixin, OrderAdminBase):
     pass
 
 
+@admin.register(SalesOrder)
 class PolymorphicOrderAdmin(PolymorphicParentModelAdmin, OrderAdminBase):
     child_models = [
         CommonOrder
@@ -154,7 +198,15 @@ class CommonOrderAdmin(SalesOrderChildAdmin):
 class InvoiceAdmin(ReadOnlyAdminMixin, ModelAdmin):
     menu_icon = 'bookmark'
     search_fields = ['inner_id', 'billed_to__name']
-    list_display = ['inner_id', 'billed_to', 'sales_order', 'due_date', 'grand_total', 'paid', 'contract']
+    list_display = [
+        'inner_id', 
+        'billed_to',
+        'sales_order',
+        'due_date',
+        'grand_total',
+        'paid',
+        'contract'
+        ]
 
 
 class SalesModelMenuGroup(ModelMenuGroup):

@@ -5,7 +5,7 @@ from polymorphic.admin import PolymorphicChildModelAdmin
 from simpellab.core import hooks
 from simpellab.admin.admin import ModelAdmin
 from simpellab.modules.products.admin import ProductChildAdmin, ProductFeeInline
-from simpellab.modules.sales.admin import OrderFeeInline
+from simpellab.modules.sales.admin import SalesOrderChildAdmin, OrderFeeInline, SalesOrderItemInline
 from simpellab.modules.sales_inspection.models import *
 
 
@@ -16,26 +16,21 @@ class InspectionServiceAdmin(ProductChildAdmin):
 
 class InspectionOrderItemParameterInline(nested_admin.NestedTabularInline):
     extra = 0
+    min_num = 1
+    autocomplete_fields = ['parameter']
     model = InspectionOrderItemParameter
     fields = ['parameter', 'note', 'price', 'date_effective']
-    raw_id_fields = ['parameter']
     readonly_fields = ['price', 'date_effective']
 
 
-class InspectionOrderItemInline(nested_admin.NestedStackedInline):
-    extra = 0
-    min_num = 1
+class InspectionOrderItemInline(SalesOrderItemInline):
     model = InspectionOrderItem
     inlines = [InspectionOrderItemParameterInline]
-    readonly_fields = ['unit_price', 'total_price']
-    raw_id_fields = ['product']
 
 
 @admin.register(InspectionOrder)
-class InspectionOrderAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin, ModelAdmin):
-    autocomplete_fields = ['customer']
+class InspectionOrderAdmin(SalesOrderChildAdmin):
     inlines = [OrderFeeInline, InspectionOrderItemInline]
-    readonly_fields = ['total_order', 'discount', 'grand_total']
     
 
 class InspectionCartParameterInline(admin.TabularInline):

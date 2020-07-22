@@ -48,10 +48,3 @@ class CommonCart(Cart):
         related_name='common_carts',
         verbose_name=_('Product')
         )
-
-
-class SalesOrderProxy(SalesOrder):
-    class Meta:
-        verbose_name = _('Sales Order')
-        verbose_name_plural = _('Sales Orders')
-        proxy = True
