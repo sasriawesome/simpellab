@@ -1,0 +1,118 @@
+{% extends 'admin/inspect.html' %}
+{% load i18n static admin_urls admin_modify %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {{ instance|truncatewords:"18" }}
+</div>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Kelas {{ instance }}</h2>
+
+  <!-- Module Kelas untuk Wali Kelas -->
+  <div class="module">
+    <h2 class="subhead">Penilaian Siswa</h2>
+    {% if instance.penilaian.count %}
+    <table class="model">
+      <thead>
+      <tr>
+        <th width="120">Siswa</th>
+        <th>Tugas</th>
+        <th>PH</th>
+        <th>PTS</th>
+        <th>PAS</th>
+        <th>Nilai Akhir</th>
+        <th>Predikat</th>
+        <th width="70"></th>
+      </tr>
+      </thead>
+      <tbody>
+        {% for item in instance.penilaian.all %}
+        <tr>
+            <td>{{ item.siswa_kelas }}</td>
+            <td>{{ item.nilai_tugas }}</td>
+            <td>{{ item.nilai_ph }}</td>
+            <td>{{ item.nilai_pts }}</td>
+            <td>{{ item.nilai_pas }}</td>
+            <td>{{ item.nilai_total }}</td>
+            <td>{{ item.predikat }}</td>
+            <td><a href="{% url 'admin:sister_sekolah_matapelajarankelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
+        </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+      {% else %}
+      <table>
+      <tr>
+          <td colspan="5">Mata pelajaran {{ instance }} belum memiliki penilaian siswa.</td>
+      </tr>
+      {% endif %}
+    </table>
+  </div>
+  
+  <p class="small">
+    <a href="{% url opts|admin_urlname:'changelist' %}">&lsaquo; {% trans 'Back to' %} {{ opts.verbose_name_plural|capfirst }}</a>
+  </p>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related" class="sidebar">
+  <div class="module">
+    <table>
+        <tbody>
+            <tr>
+                <td><strong>Nama Kelas</strong></td>
+                <td>{{ instance.kelas }}</td>
+            </tr>
+            <tr>
+                <td><strong>Guru Pelajaran</strong></td>
+                <td>{{ instance.guru }}</td>
+            </tr>
+            <tr>
+                <td><strong>Mata Pelajaran</strong></td>
+                <td>{{ instance.mata_pelajaran.mata_pelajaran.nama }}</td>
+            </tr>
+            <tr>
+                <td><strong>Kurikulum</strong></td>
+                <td>{{ instance.mata_pelajaran.kurikulum }}</td>
+            </tr>
+            <tr>
+                <td><strong>Tahun Ajaran</strong></td>
+                <td>{{ instance.kelas.tahun_ajaran }}</td>
+            </tr>
+            <tr>
+                <th colspan="2">Bobot Penilaian</th>
+            </tr>
+            <tr>
+                <td><strong>Tugas</strong></td>
+                <td>{{ instance.bobot.tugas }}</td>
+            </tr>
+            <tr>
+                <td><strong>PH</strong></td>
+                <td>{{ instance.bobot.ph }}</td>
+            </tr>
+            <tr>
+                <td><strong>PTS</strong></td>
+                <td>{{ instance.bobot.pts }}</td>
+            </tr>
+            <tr>
+                <td><strong>PAS</strong></td>
+                <td>{{ instance.bobot.pas }}</td>
+            </tr>
+            <tr>
+                <td><strong>KKM</strong></td>
+                <td>{{ instance.bobot.kkm }}</td>
+            </tr>
+        </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block page_header %}
+<div class="bg-dark m-b-30">
+    <div class="container">
+        <div class="row p-b-0 p-t-30">
+            <div class="col-md-6 text-white p-b-30">
+                <div class="media">
+                    <div class="avatar avatar mr-3">
+                        <img src="{% static 'sister_web/img/users/user-2.jpg' %}" class="rounded-circle" alt="">
+                    </div>
+                    <div class="media-body">
+                        <h1>Sri Anisah, S.Pd <img src="https://twemoji.maxcdn.com/2/72x72/1f1e8-1f1e6.png" width="30" alt=""></h1>
+                        <div class="text-overline opacity-75">Sistem Informasi Sekolah Terpadu, SISTER</div>
+                        <p class="opacity-75">
+                            Selamat Datang Ibu Guru, <br/>
+                            SDN 4 Teluk Pandan, Kec. Padang Cermin, Pesawaran Lampung
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-right text-white">
+                <div>
+                    <div class="text-overline opacity-75 m-b-10   ">on Teams</div>
+                    <a href="$" class="badge-soft-danger badge">Development</a>
+                    <a href="$" class="badge-soft-info badge">UI/UX</a>
+                </div>
+                <p class="m-t-10">
+                    <a href="#" class="btn btn-white-translucent"> 👑 Infinity Plan</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="container p-b-60">
+    <div class="row">
+        
+        <div class="col-md-3">
+            <div class="card m-b-30">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="avatar mr-2 avatar-xs">
+                            <div class="avatar-title bg-dark rounded-circle">
+                                <i class="mdi mdi-school mdi-18px"></i>
+                            </div>
+                        </div>
+                        <strong>Profil Guru</strong>
+                    </div>
+                </div>
+                <div class="list-group list  list-group-flush">
+
+                    <div class="list-group-item p-all-15 h6 ">
+                        <i class="mdi mdi-account"></i> Nama <a href="#" class="text-underline">Sri Anisah, S.Pd</a>
+                    </div>
+                    <div class="list-group-item p-all-15 h6 ">
+                        <i class="mdi mdi-card"></i> NIP <a href="#" class="text-underline">1920129 0213 1231 121</a>
+                    </div>
+                    <div class="list-group-item p-all-15 h6 ">
+                        <i class="mdi mdi-map-marker"></i> Alamat <p class="mt-1">Jl. Ikan Sebelah. Gg. Flamboyan No.8 Kelurahan Pesawahan, Kec. Teluk Betung Selatan Bandar Lampung</p>
+                    </div>
+                    <div class="list-group-item p-all-15 h6 ">
+                        <i class="mdi mdi-whatsapp"></i> WA <span class="text-underline">081291228812</span>
+                    </div>
+                    <div class="list-group-item p-all-15 h6 ">
+                        <i class="mdi mdi-phone"></i> Phone <span class="text-underline">018129881212</span>
+                    </div>
+                    <div class="list-group-item p-all-15 h6 ">
+                        <i class="mdi mdi-email"></i> Email <span class="text-underline">sasri.anisah@gmail.com</span>
+                    </div>
+                    <div class="list-group-item p-all-15 h6 ">
+                        <a href="#" class="btn btn-primary btn-block">Perbaharui Profil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="table-responsive">
+                <table class="table align-td-middle table-card">
+                    <thead>
+                    <tr>
+                        <th width="150px" colspan="3">Kelas Anda</th>
+                        <th width="200px">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>K2013.T1.K1.R2018</td>
+                        <td><i class="mdi mdi-watch "></i> Active</td>
+                        <td class="align-middle">
+                            <div class="input-group ">
+                                <div class="input-group-prepend">
+                                    <a href="invoice-single.html" class="btn btn-white">Tampilkan</a>
+                                    <button type="button" class="btn btn-white dropdown-toggle dropdown-toggle-split rounded-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">Buat Absensi</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>K2013.T1.K1.R2018</td>
+                        <td><i class="mdi mdi-watch "></i> Pending</td>
+                        <td class="align-middle">
+                            <div class="input-group ">
+                                <div class="input-group-prepend">
+                                    <a href="invoice-single.html" class="btn btn-white">Tampilkan</a>
+                                    <button type="button" class="btn btn-white dropdown-toggle dropdown-toggle-split rounded-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">Buat Absensi</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-td-middle table-card">
+                    <thead>
+                    <tr>
+                        <th width="150px" colspan="2">Mata Pelajaran Anda</th>
+                        <th width="200px">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td class="align-middle">
+                            <div class="input-group ">
+                                <div class="input-group-prepend">
+                                    <a href="invoice-single.html" class="btn btn-white">Tampilkan</a>
+                                    <button type="button" class="btn btn-white dropdown-toggle dropdown-toggle-split rounded-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">Input Nilai</a>
+                                        <div role="separator" class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#">Tambah Tugas</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td class="align-middle">
+                            <div class="input-group ">
+                                <div class="input-group-prepend">
+                                    <a href="invoice-single.html" class="btn btn-white">Tampilkan</a>
+                                    <button type="button" class="btn btn-white dropdown-toggle dropdown-toggle-split rounded-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">Input Nilai</a>
+                                        <div role="separator" class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#">Tambah Tugas</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td class="align-middle">
+                            <div class="input-group ">
+                                <div class="input-group-prepend">
+                                    <a href="invoice-single.html" class="btn btn-white">Tampilkan</a>
+                                    <button type="button" class="btn btn-white dropdown-toggle dropdown-toggle-split rounded-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">Input Nilai</a>
+                                        <div role="separator" class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#">Tambah Tugas</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-td-middle table-card">
+                    <thead>
+                    <tr>
+                        <th width="150px" colspan="2">Jadwal Mengajar Hari Ini</th>
+                        <th width="200px">Jam Mulai</th>
+                        <th width="200px">Jam Berakhir</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                    </tr>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                    </tr>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                    </tr>
+                    <tr>
+                        <td>1 A 2020/2021</td>
+                        <td>Pendidikan Pancasila dan Kewarganegaraan</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                        <td><i class="mdi mdi-watch "></i> 8:20 a.m.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

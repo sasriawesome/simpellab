@@ -1,0 +1,57 @@
+{% extends 'kelas.html' %}
+
+{% load static %}
+
+
+{% block content_main %}
+
+<div class="table-responsive">
+    <table class="table align-td-middle table-card">
+        <thead>
+        <tr>
+            <th>Tanggal</th>
+            <th width="80px">Hadir</th>
+            <th width="80px">Sakit</th>
+            <th width="80px">Izin</th>
+            <th width="80px">TK</th>
+            <th width="180px" class="text-right">
+                <a href="{% url 'kelas_absensi_create' %}" class="btn btn-success">Tambah</a>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Senin, 24 Juli 2020</td>
+            <td>5</td>
+            <td>8</td>
+            <td>17</td>
+            <td>0</td>
+            <td align="right" class="align-middle">
+                <a href="invoice-single.html" class="btn btn-white">Ubah</a>
+            </td>
+        </tr>
+        <tr>
+            <td>Senin, 24 Juli 2020</td>
+            <td>5</td>
+            <td>8</td>
+            <td>17</td>
+            <td>0</td>
+            <td align="right" class="align-middle">
+                <a href="invoice-single.html" class="btn btn-white">Ubah</a>
+            </td>
+        </tr>
+        <tr>
+            <td>Senin, 24 Juli 2020</td>
+            <td>5</td>
+            <td>8</td>
+            <td>17</td>
+            <td>0</td>
+            <td align="right" class="align-middle">
+                <a href="invoice-single.html" class="btn btn-white">Ubah</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

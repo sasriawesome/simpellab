@@ -1,0 +1,90 @@
+{% extends 'kelas.html' %}
+
+{% load static %}
+
+
+{% block content_main %}
+
+<div class="card m-b-30 ">
+    <div class="card-header">
+        <h5 class="m-b-0">Absensi Kelas 1A 2020/2021</h5>
+        <p class="m-b-0 opacity-50">Masukkan tanggal absensi yang sesuai, sebaiknya buat absen setiap hari.</p>
+    </div>
+    <div class="card-body ">
+        <!--Following uses  .form-dark class on parent to make controls appear -->
+        <!--transparent in the container-->
+        <form class="" action="#">
+            <div class="form-group floating-label">
+                <label>Address 2</label>
+                <input type="text" class="form-control" placeholder="Address 2 Apartment, studio, or floor">
+            </div>
+            <button type="submit" class="btn btn-success">Simpan Absensi</button>
+            <a href="#" class="btn btn-white">Kembali</a>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table align-td-middle table-card">
+        <thead>
+        <tr>
+            <th width="150px" colspan="2">Siswa Kelas</th>
+            <th width="100px">NIS</th>
+            <th width="100px">NISN</th>
+            <th width="200px">Keterangan</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <div class="avatar avatar-sm "><img src="{% static 'sister_web/img/users/user-1.jpg' %}" class="avatar-img avatar-sm rounded-circle" alt=""></div>
+            </td>
+            <td>Dian Andara</td>
+            <td>1213312</td>
+            <td>1231223</td>
+            <td class="align-middle">
+                <select class="form-control">
+                    <option>Hadir</option>
+                    <option>Sakit</option>
+                    <option>Izin</option>
+                    <option>Tanpa Keterangan</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="avatar avatar-sm "><img src="{% static 'sister_web/img/users/user-3.jpg' %}" class="avatar-img avatar-sm rounded-circle" alt=""></div>
+            </td>
+            <td>Yura Yunita</td>
+            <td>1213312</td>
+            <td>1231223</td>
+            <td class="align-middle">
+                <select class="form-control">
+                    <option>Hadir</option>
+                    <option>Sakit</option>
+                    <option>Izin</option>
+                    <option>Tanpa Keterangan</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="avatar avatar-sm "><img src="{% static 'sister_web/img/users/user-4.jpg' %}" class="avatar-img avatar-sm rounded-circle" alt=""></div>
+            </td>
+            <td>Hendra Gunawan</td>
+            <td>1213312</td>
+            <td>1231223</td>
+            <td class="align-middle">
+                <select class="form-control">
+                    <option>Hadir</option>
+                    <option>Sakit</option>
+                    <option>Izin</option>
+                    <option>Tanpa Keterangan</option>
+                </select>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
