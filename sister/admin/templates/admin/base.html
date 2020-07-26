@@ -41,38 +41,6 @@
         font-size: 18px;
         text-align: center;
     }
-    #sidenavButton {
-        padding: 10px 10px 5px;
-        background: none;
-        border: 1px solid white;
-        border-radius: 3px;
-    }
-    #sidenavButton span {
-        width: 25px;
-        height: 3px;
-        display: block;
-        background-color: white;
-        margin-bottom: 5px;
-    }
-    .sidenav-header {
-        text-align: center;
-        background: #212529;
-        padding: 30px 30px 15px;
-        border-bottom: 1px solid #112529;
-    }
-    .sidenav-header h1 {
-        margin-bottom: 0;
-        font-weight: bold;
-        color: #f5dd5d;
-    }
-    .sidenav-header span {
-        color: #f5dd5d;
-    }
-    img.sidenav-header-logo {
-        max-height: 80px;
-        max-width: 120px;
-        margin-bottom: 15px;    
-    }
 
     div.breadcrumbs {
         font-size: 12px !important;
@@ -166,6 +134,15 @@
     }
     .qrcode_small{
         width: 125px;
+    }
+    .module a.button {
+        padding: 10px 15px;
+        display: block;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    .module__widget {
+        padding: 15px;
     }
 </style>
 {% if has_permission or perms.is_autenticated %}

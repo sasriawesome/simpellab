@@ -1,9 +1,15 @@
 import uuid
 from django.db import models
+from django.conf import settings
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
+
+
 from django.contrib.auth.models import AbstractUser
+# using tenant user as default user
+from tenant_users.tenants.models import UserProfile
+
 
 from django_personals.models import AddressAbstract, ContactAbstract
 from django_personals.enums import Gender, AddressName
@@ -13,23 +19,15 @@ from sister.core.models import BaseModel, SimpleBaseModel
 from sister.auth.managers import PersonManager
 
 
-class User(AbstractUser):
+class User(UserProfile):
 
     id = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
         primary_key=True,
-        editable=False)
-    
-    first_name = None
-    last_name = None
-    email = models.EmailField(
-        _('email address'), 
-        unique=True, 
-        null=False,
-        blank=False
+        editable=False
         )
-    
+
     def get_full_name(self):
         """
         Return the fullname.
@@ -54,7 +52,7 @@ class Person(BaseModel):
     objects = PersonManager()
 
     user = models.OneToOneField(
-        User, null=True, blank=True,
+        settings.AUTH_USER_MODEL, null=True, blank=True,
         related_name='profile',
         on_delete=models.CASCADE,
         verbose_name=_('User account'))

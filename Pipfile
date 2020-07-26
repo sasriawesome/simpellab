@@ -31,6 +31,8 @@ django-qrcodes = "*"
 django-personals = "*"
 django-nested-admin = "*"
 django-payments = "*"
+django-tenants = "*"
+django-tenant-users = "*"
 
 [requires]
 python_version = "3.8"

@@ -1,8 +1,9 @@
 from django.urls import path
 from django.shortcuts import render
-
+from django.contrib.auth.views import LoginView, LogoutView
 
 def homepage(request):
+    print(request.user.is_superuser)
     return render(request, 'index.html')
 
 def kelas(request):
@@ -20,8 +21,12 @@ def kelas_rentangnilai_change(request):
 def matapelajaran_bobotpenilaian_change(request):
     return render(request, 'rentangnilai_change.html')
 
+
 urlpatterns = [
     path('', homepage, name='homepage'),
+    path('accounts/profile/', homepage, name='account_profile'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('kelas/', kelas, name='kelas'),
     path('kelas/absensi/', kelas_absensi, name='kelas_absensi'),
     path('kelas/absensi/create', kelas_absensi_create, name='kelas_absensi_create'),

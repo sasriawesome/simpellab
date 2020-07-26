@@ -1,5 +1,36 @@
+#sidenavButton {
+    padding: 10px 10px 5px;
+    background: none;
+    border: 1px solid white;
+    border-radius: 3px;
+}
+#sidenavButton span {
+    width: 25px;
+    height: 3px;
+    display: block;
+    background-color: white;
+    margin-bottom: 5px;
+}
+.sidenav-header {
+    text-align: center;
+    padding: 30px 30px 15px;
+    border-bottom: 1px solid #20678a;
+}
+.sidenav-header h1 {
+    margin-bottom: 0;
+    font-weight: bold;
+    color: #f5dd5d;
+}
+.sidenav-header span {
+    color: #f5dd5d;
+}
+img.sidenav-header-logo {
+    max-height: 80px;
+    max-width: 120px;
+    margin-bottom: 15px;    
+}
 .sidebar-nav {
-    background: #212529;
+    background: #1a5471;
 }
 #sidenav i.mdi {
     margin-right: 15px;
@@ -8,11 +39,11 @@
     padding: 0;
     margin: 0;
     list-style: none;
-    background: #1f2021;
+    background: #1e536d;
 }
 
 .sidebar-nav .metismenu {
-    background: #212529;
+    background: #1a5471;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -72,5 +103,5 @@
 .sidebar-nav .metismenu .mm-active > a {
     color: #f8f9fa;
     text-decoration: none;
-    background: #18191b;
+    background: #154963;
 }

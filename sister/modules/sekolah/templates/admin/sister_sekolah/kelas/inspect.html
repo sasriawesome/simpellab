@@ -21,15 +21,6 @@
       {% endif %}
     </ul>
 
-    <ul class="">
-      <li><a href="{% url 'admin:sister_sekolah_siswakelas_changelist'%}?kelas__id__exact={{ instance.id }}">Siswa Kelas</a></li>
-      <li><a href="{% url 'admin:sister_sekolah_rentangnilai_changelist'%}?kelas__id__exact={{ instance.id }}">Rentang Nilai</a></li>
-      <li><a href="{% url 'admin:sister_sekolah_matapelajarankelas_changelist'%}?kelas__id__exact={{ instance.id }}">Mata Pelajaran</a></li>
-      <li><a href="{% url 'admin:sister_sekolah_jadwalpelajaran_changelist'%}?kelas__id__exact={{ instance.id }}">Jadwal Kelas</a></li>
-      <li><a href="{% url 'admin:sister_sekolah_presensisiswa_changelist'%}?kelas__id__exact={{ instance.id }}">Presensi Siswa</a></li>
-      <li><a href="{% url 'admin:sister_sekolah_piketkelas_changelist'%}?kelas__id__exact={{ instance.id }}">Piket Kelas</a></li>
-    </ul>
-
   <!-- Module Kelas untuk Wali Kelas -->
   <div class="module">
     <h2 class="subhead">Jadwal Hari ini</h2>
@@ -67,6 +58,42 @@
     </table>
   </div>
   
+  <div class="module">
+    <h2 class="subhead">Siswa Kelas</h2>
+    {% if instance.siswa.count %}
+    <table class="model">
+      <thead>
+      <tr>
+        <th width="120">NIS</th>
+        <th width="120">NISN</th>
+        <th>Nama</th>
+        <th>Jenis Kelamin</th>
+        <th>Status</th>
+        <th width="70"></th>
+      </tr>
+      </thead>
+      <tbody>
+        {% for item in instance.siswa.all %}
+        <tr>
+            <td>{{ item.siswa.nis }}</td>
+            <td>{{ item.siswa }}</td>
+            <td>{{ item.siswa.person.full_name }}</td>
+            <td>{{ item.siswa.person.get_gender_display }}</td>
+            <td>{{ item.get_status_display }}</td>
+            <td><a href="{% url 'admin:sister_sekolah_matapelajarankelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
+        </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+      {% else %}
+      <table>
+      <tr>
+          <td colspan="5">Anda tidak memiliki kelas yang diampu, mungkin ada bukan guru kelas.</td>
+      </tr>
+      {% endif %}
+    </table>
+  </div>
+
   <p class="small">
     <a href="{% url opts|admin_urlname:'changelist' %}">&lsaquo; {% trans 'Back to' %} {{ opts.verbose_name_plural|capfirst }}</a>
   </p>
@@ -76,7 +103,17 @@
 {% block sidebar %}
 <div id="content-related" class="sidebar">
   <div class="module">
-    <table>
+    <div class="module__widget">
+      <a class="button" href="{% url 'admin:sister_sekolah_rentangnilai_changelist'%}?kelas__id__exact={{ instance.id }}">Rentang Nilai</a>
+      <a class="button" href="{% url 'admin:sister_sekolah_matapelajarankelas_changelist'%}?kelas__id__exact={{ instance.id }}">Mata Pelajaran</a>
+      <a class="button" href="{% url 'admin:sister_sekolah_jadwalpelajaran_changelist'%}?kelas__id__exact={{ instance.id }}">Jadwal Kelas</a>
+      <a class="button" href="{% url 'admin:sister_sekolah_presensisiswa_changelist'%}?kelas__id__exact={{ instance.id }}">Presensi Siswa</a>
+      <a class="button" href="{% url 'admin:sister_sekolah_piketkelas_changelist'%}?kelas__id__exact={{ instance.id }}">Piket Kelas</a>
+    </div>
+  </div>
+  <div class="module">
+    <div class="module__widget">
+      <table>
         <tbody>
             <tr>
                 <td><strong>Nama Kelas</strong></td>
@@ -108,6 +145,7 @@
           </tr>
         </tbody>
     </table>
+    </div>
   </div>
 </div>
 {% endblock %}

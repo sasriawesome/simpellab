@@ -5,24 +5,36 @@ from django.utils.translation import ugettext_lazy as _
 from sister.admin.admin import ModelAdmin
 from sister.auth.models import PersonContact, PersonAddress, Person
 
+from tenant_users.permissions.models import UserTenantPermissions
+
 
 @admin.register(get_user_model())
-class UserAdmin(UserAdminBase):
-    fieldsets = (
-        (None, {'fields': ('username', 'email', 'password')}),
-        (_('Permissions'), {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
-        }),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
-    )
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2'),
-        }),
-    )
-    list_display = ('username', 'email', 'is_staff')
-    search_fields = ('username', 'email')
+class UserProfileAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(UserTenantPermissions)
+class UserTenantPermissionsAdmin(admin.ModelAdmin):
+    pass
+
+
+# @admin.register(get_user_model())
+# class UserAdmin(UserAdminBase):
+#     fieldsets = (
+#         (None, {'fields': ('username', 'email', 'password')}),
+#         (_('Permissions'), {
+#             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+#         }),
+#         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+#     )
+#     add_fieldsets = (
+#         (None, {
+#             'classes': ('wide',),
+#             'fields': ('username', 'email', 'password1', 'password2'),
+#         }),
+#     )
+#     list_display = ('username', 'email', 'is_staff')
+#     search_fields = ('username', 'email')
 
 
 class ContactInline(admin.StackedInline):
