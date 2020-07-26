@@ -9,7 +9,6 @@ from admin_numeric_filter.admin import NumericFilterModelAdmin
 
 from sister.core import hooks
 from sister.admin.views import PDFPrintDetailView
-from sister.admin.sites import admin_site
 from sister.admin.menus import (
     admin_menu, 
     SubMenu,

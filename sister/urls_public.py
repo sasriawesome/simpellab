@@ -9,10 +9,7 @@ from sister.admin.urls import patterns
 
 urlpatterns = [
     path('', include('sister_web.urls')),
-    # path('go/', include('sister.modules.shorturls.urls')),
-    # path('api/', include('sister.api.urls')),
     path('admin/', patterns),
-    path('_nested_admin/', include('nested_admin.urls'))
 ]
 
 if settings.DEBUG:

@@ -1,18 +1,14 @@
 """
-Simpellab URL Configuration
+Sister Tenant URL Configuration
 
 """
 from django.conf import settings
 from django.urls import path, include
 
-from sister.admin.urls import patterns
+from sister.admin.sites import tenant_admin
 
 urlpatterns = [
-    # path('', include('sister_web.urls')),
-    # path('go/', include('sister.modules.shorturls.urls')),
-    # path('api/', include('sister.api.urls')),
-    path('admin/', patterns),
-    path('_nested_admin/', include('nested_admin.urls'))
+    path('', include((tenant_admin.get_urls(), 'admin'))),
 ]
 
 if settings.DEBUG:
@@ -23,8 +19,6 @@ if settings.DEBUG:
     # Serve static and media files from development server
     urlpatterns += [
         # path('__debug__/', include(debug_toolbar.urls)),
-        # path('admin/docs/', include(admindocs_urls)),
-        # path('admin/queues/', include('django_rq.urls'))
     ]
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -3,6 +3,6 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class AppConfig(BaseAppConfig):
-    name = 'sister.modules.sekolah'
-    label = 'sister_sekolah'
-    verbose_name = _('Sekolah')
+    name = 'sister.modules.personal'
+    label = 'sister_personal'
+    verbose_name = _('Personal')

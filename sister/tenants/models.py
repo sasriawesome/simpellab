@@ -1,11 +1,16 @@
 from django.db import models
-from tenant_users.tenants.models import TenantBase
-from django_tenants.models import DomainMixin
+# from tenant_users.tenants.models import TenantBase
+from django_tenants.models import TenantMixin, DomainMixin
 
 
-class Client(TenantBase):
+class Client(TenantMixin):
     name = models.CharField(max_length=100)
-    description = models.TextField(max_length=200)
+    paid_until =  models.DateField()
+    on_trial = models.BooleanField()
+    created_on = models.DateField(auto_now_add=True)
+    
+    # default true, schema will be automatically created and synced when it is saved
+    auto_create_schema = True
 
 
 class Domain(DomainMixin):

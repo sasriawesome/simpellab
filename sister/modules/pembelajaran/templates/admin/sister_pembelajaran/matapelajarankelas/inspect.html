@@ -43,7 +43,7 @@
             <td>{{ item.nilai_pas }}</td>
             <td>{{ item.nilai_total }}</td>
             <td>{{ item.predikat }}</td>
-            <td><a href="{% url 'admin:sister_sekolah_matapelajarankelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
+            <td><a href="{% url 'admin:sister_pembelajaran_matapelajarankelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
         </tr>
         {% endfor %}
             </tbody>

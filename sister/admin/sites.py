@@ -29,4 +29,5 @@ class CustomAdminSite(AdminSite):
         """
         return request.user.is_active and request.user.is_staff
 
-admin_site = CustomAdminSite(name='custom_admin')
+custom_admin = CustomAdminSite(name='admin')
+tenant_admin = CustomAdminSite(name='admin')

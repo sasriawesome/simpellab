@@ -37,13 +37,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 # =============================================================================
 
-
-SHARED_APPS = (
-    'django_tenants',  # mandatory
-    'django.contrib.contenttypes',
+INSTALLED_APPS = (
 
     # app where tenant model resides in
-    'sister.tenants',
     'sister.auth',
     'sister.admin',
     
@@ -60,40 +56,27 @@ SHARED_APPS = (
     'django_filters',
 
     # The following Django contrib apps are optional
+    'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-)
-
-TENANT_APPS = (
-    # The following Django contrib apps must be in TENANT_APPS
-    'django.contrib.contenttypes',
 
     # Tenant Apps
     'sister.core',
-    'sister.auth',
+    'sister.modules.personal',
     'sister.modules.ruang',
-    'sister.modules.sekolah',
+    'sister.modules.kurikulum',
+    'sister.modules.pembelajaran',
+    'sister.modules.penilaian',
 
-    # The following Django contrib apps are optional
-    'django.contrib.auth',
-    'django.contrib.sessions',
-    'django.contrib.admin',
 )
-
-
-TENANT_MODEL = 'sister_tenants.Client'
-TENANT_DOMAIN_MODEL = 'sister_tenants.Domain'
-
-INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
 WSGI_APPLICATION = 'sister.wsgi.application'
 
 MIDDLEWARE = [
-    'django_tenants.middleware.main.TenantMainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -130,20 +113,14 @@ TEMPLATES = [
 # Database
 # =============================================================================
 
-DATABASE_ROUTERS = (
-    'django_tenants.routers.TenantSyncRouter',
-)
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': 'sister_db', # os.environ.get('PG_DATABASE', 'dtu_test_project'),
-        'USER': 'postgres', # os.environ.get('PG_USER', 'postgres'),
-        'PASSWORD': 'habibie099', # os.environ.get('PG_PASSWORD', 'password'),
-        'HOST': '127.0.0.1',
-        'PORT': 5432
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
 
 # If using heroku
 # DATABASES['default'].update(

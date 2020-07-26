@@ -18,7 +18,7 @@
   <!-- Module Kelas untuk Wali Kelas -->
   {% block object-tools %}
   <ul class="object-tools">
-      <li><a href="{% url 'admin:sister_auth_person_inspect' object_id=instance.person.id %}">Profile</a></li>
+      <li><a href="{% url 'admin:sister_personal_person_inspect' object_id=instance.person.id %}">Profile</a></li>
       {% if instance.person.user %}
       <li><a href="{% url 'admin:sister_auth_user_change' object_id=instance.person.user.id %}">User</a></li>
       {% endif %}
@@ -42,7 +42,7 @@
         <td>{{ item }}</td>
         <td>{{ item.kurikulum }}</td>
         <td>{{ item.get_status_display }}</td>
-        <td><a href="{% url 'admin:sister_sekolah_kelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
+        <td><a href="{% url 'admin:sister_pembelajaran_kelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
       </tr>
       {% endfor %}
       </tbody>
@@ -74,7 +74,7 @@
       <tr>
         <td>{{ item.kelas }}</td>
         <td>{{ item.mata_pelajaran.mata_pelajaran.nama }}</td>
-        <td><a href="{% url 'admin:sister_sekolah_matapelajarankelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
+        <td><a href="{% url 'admin:sister_pembelajaran_matapelajarankelas_inspect' object_id=item.id %}">Tampilkan &rsaquo;</a></td>
       </tr>
       {% endfor %}
       </tbody>
