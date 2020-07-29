@@ -33,6 +33,7 @@ django-nested-admin = "*"
 django-payments = "*"
 django-tenants = "*"
 django-tenant-users = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.8"
